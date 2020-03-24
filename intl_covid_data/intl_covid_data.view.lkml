@@ -48,7 +48,20 @@ view: covid_data {
   dimension: country {
     type: string
     map_layer_name: countries
-    sql: ${TABLE}.Country ;;
+    sql:
+      case
+        when ${TABLE}.Country = 'Korea, South' then 'South Korea'
+        when ${TABLE}.Country = 'Tanzania' then 'United Republic of Tanzania'
+        when ${TABLE}.Country = 'Congo (Kinshasa)' then 'Democratic Republic of the Congo'
+        when ${TABLE}.Country = 'Congo (Brazzaville)' then 'Republic of the Congo'
+        when ${TABLE}.Country = 'Czechia' then 'Czech Republic'
+        when ${TABLE}.Country = 'Czechia' then 'Czech Republic'
+        when ${TABLE}.Country = 'Serbia' then 'Republic of Serbia'
+        when ${TABLE}.Country = 'North Macedonia' then 'Macedonia'
+        else ${TABLE}.Country
+        -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
+      end
+      ;;
     drill_fields: [state]
     link: {
       label: "{{ value }} Drill Down"
