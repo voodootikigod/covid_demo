@@ -15,6 +15,15 @@ explore: covid_data {
     sql_on: 1 = 1  ;;
   }
 
+  join: cases_by_country_by_date {
+    # fields: []
+    relationship: many_to_one
+    sql_on:
+          ${covid_data.country_raw} = ${cases_by_country_by_date.country_raw}
+      AND ${covid_data.date_raw} = ${cases_by_country_by_date.date_raw}
+      ;;
+  }
+
   join: days_since_first_case_country {
     fields: []
     relationship: many_to_one

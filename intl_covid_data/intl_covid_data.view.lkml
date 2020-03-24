@@ -145,13 +145,13 @@ view: covid_data {
   }
 
   dimension: confirmed_cumulative {
-    # hidden: yes
+    hidden: yes
     type: number
     sql: ${TABLE}.confirmed_cumulative ;;
   }
 
   dimension: confirmed_new_cases {
-    # hidden: yes
+    hidden: yes
     type: number
     sql: ${TABLE}.confirmed_new_cases ;;
   }
