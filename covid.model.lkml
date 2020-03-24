@@ -5,8 +5,6 @@ include: "/us_covid_data/*.view.lkml"
 # include: "/**/view.lkml"                   # include all views in this project
 # include: "/dashboards/*.dashboard.lookml"   # include a LookML dashboard called my_dashboard
 
-### Data Source: https://raw.githubusercontent.com/datasets/covid-19/master/time-series-19-covid-combined.csv
-
 explore: covid_data {
 
   join: max_date_intl {

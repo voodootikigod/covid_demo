@@ -1,5 +1,3 @@
-### Data Source: https://raw.githubusercontent.com/datasets/covid-19/master/time-series-19-covid-combined.csv
-
 view: covid_data {
   derived_table: {
     datagroup_trigger: once_daily
