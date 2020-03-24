@@ -33,6 +33,15 @@ explore: covid_data {
     relationship: many_to_one
     sql_on: ${covid_data.state} = ${days_since_first_case_state.state} ;;
   }
+  join: prior_days_cases {
+    relationship: one_to_one
+    type: inner
+    sql_on: ${prior_days_cases.country_raw} = ${covid_data.country_raw}
+      AND ${prior_days_cases.state} = ${covid_data.state}
+      AND ${prior_days_cases.date_date} = ${covid_data.date_date}
+
+    ;;
+  }
 }
 
 explore: tests_by_state {

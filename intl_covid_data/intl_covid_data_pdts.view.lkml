@@ -126,3 +126,49 @@ view: days_since_first_case_state {
     sql: cast(${TABLE}.min_date as date) ;;
   }
 }
+
+
+view: prior_days_cases {
+  derived_table: {
+    datagroup_trigger: once_daily
+    explore_source: covid_data {
+      column: date_date {}
+      column: country_raw {}
+      column: state {}
+      column: confirmed_running_total {}
+      derived_column: prior_1_day_cumulative_cases {
+        sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 2 PRECEDING and 1 PRECEDING),0) ;;
+      }
+      derived_column: prior_2_days_cumulative_cases {
+        sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 3 PRECEDING and 2 PRECEDING),0) ;;
+      }
+      derived_column: prior_3_days_cumulative_cases {
+        sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 4 PRECEDING and 3 PRECEDING),0) ;;
+      }
+      derived_column: prior_4_days_cumulative_cases {
+        sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 5 PRECEDING and 4 PRECEDING),0) ;;
+      }
+      derived_column: prior_5_days_cumulative_cases {
+        sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 6 PRECEDING and 5 PRECEDING),0) ;;
+      }
+      derived_column: prior_6_days_cumulative_cases {
+        sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 7 PRECEDING and 6 PRECEDING),0) ;;
+      }
+      derived_column: prior_7_days_cumulative_cases {
+        sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 8 PRECEDING and 7 PRECEDING),0) ;;
+      }
+    }
+  }
+  dimension: date_date {
+    type: date
+  }
+  dimension: country_raw {}
+  dimension: state {}
+  dimension: prior_1_day_cumulative_cases {type:number}
+  dimension: prior_2_days_cumulative_cases {type:number}
+  dimension: prior_3_days_cumulative_cases {type:number}
+  dimension: prior_4_days_cumulative_cases {type:number}
+  dimension: prior_5_days_cumulative_cases {type:number}
+  dimension: prior_6_days_cumulative_cases {type:number}
+  dimension: prior_7_days_cumulative_cases {type:number}
+}
