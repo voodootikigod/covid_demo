@@ -129,6 +129,7 @@ view: days_since_first_case_state {
 
 
 view: prior_days_cases {
+  view_label: "Trends"
   derived_table: {
     datagroup_trigger: once_daily
     explore_source: covid_data {
@@ -136,39 +137,74 @@ view: prior_days_cases {
       column: country_raw {}
       column: state {}
       column: confirmed_running_total {}
-      derived_column: prior_1_day_cumulative_cases {
+      derived_column: prior_1_days_cumulative_cases_raw {
         sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 2 PRECEDING and 1 PRECEDING),0) ;;
       }
-      derived_column: prior_2_days_cumulative_cases {
+      derived_column: prior_2_days_cumulative_cases_raw {
         sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 3 PRECEDING and 2 PRECEDING),0) ;;
       }
-      derived_column: prior_3_days_cumulative_cases {
+      derived_column: prior_3_days_cumulative_cases_raw {
         sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 4 PRECEDING and 3 PRECEDING),0) ;;
       }
-      derived_column: prior_4_days_cumulative_cases {
+      derived_column: prior_4_days_cumulative_cases_raw {
         sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 5 PRECEDING and 4 PRECEDING),0) ;;
       }
-      derived_column: prior_5_days_cumulative_cases {
+      derived_column: prior_5_days_cumulative_cases_raw {
         sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 6 PRECEDING and 5 PRECEDING),0) ;;
       }
-      derived_column: prior_6_days_cumulative_cases {
+      derived_column: prior_6_days_cumulative_cases_raw {
         sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 7 PRECEDING and 6 PRECEDING),0) ;;
       }
-      derived_column: prior_7_days_cumulative_cases {
+      derived_column: prior_7_days_cumulative_cases_raw {
         sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${country_raw}, ${state} ORDER BY ${date_date} asc ROWS BETWEEN 8 PRECEDING and 7 PRECEDING),0) ;;
       }
     }
   }
   dimension: date_date {
     type: date
+    hidden:yes
   }
-  dimension: country_raw {}
-  dimension: state {}
-  dimension: prior_1_day_cumulative_cases {type:number}
-  dimension: prior_2_days_cumulative_cases {type:number}
-  dimension: prior_3_days_cumulative_cases {type:number}
-  dimension: prior_4_days_cumulative_cases {type:number}
-  dimension: prior_5_days_cumulative_cases {type:number}
-  dimension: prior_6_days_cumulative_cases {type:number}
-  dimension: prior_7_days_cumulative_cases {type:number}
+  dimension: country_raw { hidden:yes}
+  dimension: state {hidden:yes}
+  dimension: prior_1_days_cumulative_cases_raw {type:number hidden:yes}
+  dimension: prior_2_days_cumulative_cases_raw {type:number hidden:yes}
+  dimension: prior_3_days_cumulative_cases_raw {type:number hidden:yes}
+  dimension: prior_4_days_cumulative_cases_raw {type:number hidden:yes}
+  dimension: prior_5_days_cumulative_cases_raw {type:number hidden:yes}
+  dimension: prior_6_days_cumulative_cases_raw {type:number hidden:yes}
+  dimension: prior_7_days_cumulative_cases_raw {type:number hidden:yes}
+  #All of these metrics require having date selected, or filtered to a single date.
+  measure: prior_1_days_cumulative_cases { group_label: "Past Days Totals" type:sum sql: ${prior_1_days_cumulative_cases_raw};;}
+  measure: prior_2_days_cumulative_cases { group_label: "Past Days Totals" type:sum sql: ${prior_2_days_cumulative_cases_raw};;}
+  measure: prior_3_days_cumulative_cases { group_label: "Past Days Totals" type:sum sql: ${prior_3_days_cumulative_cases_raw};;}
+  measure: prior_4_days_cumulative_cases { group_label: "Past Days Totals" type:sum sql: ${prior_4_days_cumulative_cases_raw};;}
+  measure: prior_5_days_cumulative_cases { group_label: "Past Days Totals" type:sum sql: ${prior_5_days_cumulative_cases_raw};;}
+  measure: prior_6_days_cumulative_cases { group_label: "Past Days Totals" type:sum sql: ${prior_6_days_cumulative_cases_raw};;}
+  measure: prior_7_days_cumulative_cases { group_label: "Past Days Totals" type:sum sql: ${prior_7_days_cumulative_cases_raw};;}
+
+  measure: change_since_yesterday {
+    type: number
+    value_format_name: percent_0
+    sql:  (${covid_data.confirmed_running_total} - ${prior_1_days_cumulative_cases}) / NULLIF(${prior_1_days_cumulative_cases},0);;
+  }
+
+  measure: doubling_time {
+    type: number
+    value_format_name: decimal_1
+    sql:  70 / NULLIF(100*${seven_day_average_change_rate},0);;
+    html: {{rendered_value}} Day(s) ;;
+  }
+
+  measure: seven_day_average_change_rate {
+    type: number
+    value_format_name: percent_0
+    sql: ((${covid_data.confirmed_running_total} - ${prior_1_days_cumulative_cases}) / NULLIF(${prior_1_days_cumulative_cases},0)
+    + (${prior_1_days_cumulative_cases} - ${prior_2_days_cumulative_cases}) / NULLIF(${prior_2_days_cumulative_cases},0)
+    + (${prior_2_days_cumulative_cases} - ${prior_3_days_cumulative_cases}) / NULLIF(${prior_3_days_cumulative_cases},0)
+    + (${prior_3_days_cumulative_cases} - ${prior_4_days_cumulative_cases}) / NULLIF(${prior_4_days_cumulative_cases},0)
+    + (${prior_4_days_cumulative_cases} - ${prior_5_days_cumulative_cases}) / NULLIF(${prior_5_days_cumulative_cases},0)
+    + (${prior_5_days_cumulative_cases} - ${prior_6_days_cumulative_cases}) / NULLIF(${prior_6_days_cumulative_cases},0)
+    + (${prior_6_days_cumulative_cases} - ${prior_7_days_cumulative_cases}) / NULLIF(${prior_7_days_cumulative_cases},0))/7.0;;
+  }
+
 }
