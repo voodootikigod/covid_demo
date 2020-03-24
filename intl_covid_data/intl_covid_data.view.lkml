@@ -6,29 +6,28 @@ view: covid_data {
     sql:
 
     SELECT
-
-      a.State,
-      a.Country,
-      Date,
-      Lat,
-      Long,
+      a.province_state as State,
+      a.country_region as Country,
+      cast(Date as date) as Date,
+      latitude as Lat,
+      longitude as Long,
       b.region as region_state,
       c.region as region_country,
       Confirmed as confirmed_cumulative,
-      Confirmed - coalesce(LAG(Confirmed, 1) OVER (PARTITION BY coalesce(a.State,''), a.Country  ORDER BY Date ASC),0) as confirmed_new_cases,
+      Confirmed - coalesce(LAG(Confirmed, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as confirmed_new_cases,
 
       Recovered as recovered_cumulative,
-      Recovered - coalesce(LAG(Recovered, 1) OVER (PARTITION BY coalesce(a.State,''), a.Country  ORDER BY Date ASC),0) as recovered_new_cases,
+      Recovered - coalesce(LAG(Recovered, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as recovered_new_cases,
 
       Deaths as deaths_cumulative,
-      Deaths - coalesce(LAG(Deaths, 1) OVER (PARTITION BY coalesce(a.State,''), a.Country  ORDER BY Date ASC),0) as deaths_new_cases,
+      Deaths - coalesce(LAG(Deaths, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as deaths_new_cases,
 
-    FROM `covid-271711.covid19.covid_data` a
-    LEFT JOIN `covid-271711.covid19.state_region` b
-      ON a.state = b.state
-    LEFT JOIN `covid-271711.covid19.country_region` c
-      ON a.country = c.country
-    WHERE a.state IS NULL OR a.state NOT LIKE '%,%'
+    FROM `bigquery-public-data.covid19_jhu_csse.summary` a
+    LEFT JOIN `lookerdata.covid19.state_region` b
+      ON a.province_state = b.state
+    LEFT JOIN `lookerdata.covid19.country_region` c
+      ON a.country_region = c.country
+    WHERE a.province_state IS NULL OR a.province_state NOT LIKE '%,%'
 
     ;;
   }

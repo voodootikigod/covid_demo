@@ -1,4 +1,4 @@
-connection: "z_aaron_personal"
+connection: "lookerdata"
 
 include: "/intl_covid_data/*.view.lkml"
 include: "/us_covid_data/*.view.lkml"

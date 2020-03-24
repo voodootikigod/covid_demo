@@ -18,8 +18,8 @@ view: tests_by_state {
       pending - coalesce(LAG(pending, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as pending_new_cases,
       negative as negative_cumulative,
       negative - coalesce(LAG(negative, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as negative_new_cases,
-    FROM `covid-271711.covid19.tests_by_state` a
-     LEFT JOIN `covid-271711.covid19.state_region` b
+    FROM `lookerdata.covid19.tests_by_state` a
+     LEFT JOIN `lookerdata.covid19.state_region` b
       ON a.state = b.state_code ;;
   }
   # sql_table_name: `covid-271711.covid19.tests_by_state` ;;
