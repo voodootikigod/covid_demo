@@ -18,7 +18,7 @@ explore: covid_data {
   join: days_since_first_case_country {
     fields: []
     relationship: many_to_one
-    sql_on: ${covid_data.country} = ${days_since_first_case_country.country} ;;
+    sql_on: ${covid_data.country_raw} = ${days_since_first_case_country.country_raw} ;;
   }
 
   join: days_since_first_case_state {

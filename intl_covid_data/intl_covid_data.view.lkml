@@ -45,6 +45,12 @@ view: covid_data {
 
 #### Location ####
 
+  dimension: country_raw {
+    hidden: yes
+    type: string
+    sql: ${TABLE}.Country ;;
+  }
+
   dimension: country {
     type: string
     map_layer_name: countries
@@ -78,7 +84,7 @@ view: covid_data {
   dimension: state {
     type: string
     map_layer_name: us_states
-    sql: coalesce(${TABLE}.State,'') ;;
+    sql: coalesce(${TABLE}.State,${country_raw}) ;;
     link: {
       label: "See original data"
       url: "https://coronavirus.jhu.edu/map.html"

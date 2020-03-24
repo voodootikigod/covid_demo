@@ -16,11 +16,19 @@ view: max_date_intl {
   }
 }
 
+# view: {
+#   sql_table_name:
+#       {% if covid_data.country._in_query %} ${days_since_first_case_country.SQL_TABLE_NAME}
+#       {% else %} ${days_since_first_case_state.SQL_TABLE_NAME}
+#       {% endif %}
+#   ;;
+# }
+
 view: days_since_first_case_country {
   derived_table: {
     datagroup_trigger: once_daily
     explore_source: covid_data {
-      column: country {}
+      column: country_raw {}
       column: min_date {}
       filters: {
         field: covid_data.confirmed_new_cases
@@ -28,7 +36,7 @@ view: days_since_first_case_country {
       }
     }
   }
-  dimension: country {
+  dimension: country_raw {
     primary_key: yes
     hidden: yes
   }
