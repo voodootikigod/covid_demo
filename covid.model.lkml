@@ -69,6 +69,26 @@ explore: acs_zip_codes_2017_5yr {
   }
 }
 
+explore: acs_puma_2018 {
+  group_label: "IN PROGRESS"
+  label: "DRAFT: Census Data (PUMA Level)"
+
+  join: zip_to_puma_v2 {
+    relationship: many_to_many
+    sql_on: ${acs_puma_2018.geo_id} = ${zip_to_puma_v2.puma} ;;
+  }
+
+#   join: us_zipcode_boundaries {
+#     relationship: one_to_one
+#     sql_on: ${zip_to_puma_v2.zcta5} = ${us_zipcode_boundaries.zip_code} ;;
+#   }
+#   join: zipcode_facts {
+#     relationship: one_to_one
+#     sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
+#   }
+
+}
+
 
 
 
@@ -97,4 +117,16 @@ datagroup: once_monthly {
 datagroup: once_yearly {
   max_cache_age: "9000 hours"
   sql_trigger: SELECT extract(year from current_date()) ;;
+}
+
+############ Custom Map Layers ############
+
+map_layer: us_pumas {
+  format: "vector_tile_region"
+  url: "https://a.tiles.mapbox.com/v4/looker-maps.3ip3jv1a/{z}/{x}/{y}.mvt?access_token=@{mapbox_api_key}"
+  feature_key: "ipums_puma_2010geojson"
+  extents_json_url: "https://rawcdn.githack.com/dwmintz/looker_map_layers/4a48ef77a012a9be8d9e1df7aa38e783f5f81e82/puma_extents.json"
+  min_zoom_level: 3
+  max_zoom_level: 13
+  property_key: "GEOID"
 }
