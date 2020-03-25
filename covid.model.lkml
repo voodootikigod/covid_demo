@@ -2,6 +2,8 @@ connection: "lookerdata"
 
 include: "/intl_covid_data/*.view.lkml"
 include: "/us_covid_data/*.view.lkml"
+
+include: "/census_data/*.view.lkml"
 # include: "/**/view.lkml"                   # include all views in this project
 # include: "/dashboards/*.dashboard.lookml"   # include a LookML dashboard called my_dashboard
 
@@ -52,6 +54,23 @@ explore: tests_by_state {
     sql_on: 1 = 1  ;;
   }
 }
+
+############ Census Explores ############
+
+explore: acs_zip_codes_2017_5yr {
+  label: "ACS 2017 Data, By Zipcode"
+  join: us_zipcode_boundaries {
+    relationship: one_to_one
+    sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
+  }
+  join: zipcode_facts {
+    relationship: one_to_one
+    sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
+  }
+}
+
+
+
 
 
 ############ Caching Logic ############
