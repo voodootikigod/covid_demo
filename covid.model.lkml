@@ -15,33 +15,33 @@ explore: covid_data {
     sql_on: 1 = 1  ;;
   }
 
-  join: cases_by_country_by_date {
-    # fields: []
-    relationship: many_to_one
-    sql_on:
-          ${covid_data.country_raw} = ${cases_by_country_by_date.country_raw}
-      AND ${covid_data.date_raw} = ${cases_by_country_by_date.date_raw}
-      ;;
-  }
+#   join: cases_by_country_by_date {
+#     # fields: []
+#     relationship: many_to_one
+#     sql_on:
+#           ${covid_data.country_raw} = ${cases_by_country_by_date.country_raw}
+#       AND ${covid_data.date_raw} = ${cases_by_country_by_date.date_raw}
+#       ;;
+#   }
+#
+#   join: days_since_first_case_country {
+#     fields: []
+#     relationship: many_to_one
+#     sql_on: ${covid_data.country_raw} = ${days_since_first_case_country.country_raw} ;;
+#   }
+#
+#   join: days_since_first_case_state {
+#     fields: []
+#     relationship: many_to_one
+#     sql_on: ${covid_data.state} = ${days_since_first_case_state.state} ;;
+#   }
 
-  join: days_since_first_case_country {
-    fields: []
-    relationship: many_to_one
-    sql_on: ${covid_data.country_raw} = ${days_since_first_case_country.country_raw} ;;
-  }
-
-  join: days_since_first_case_state {
-    fields: []
-    relationship: many_to_one
-    sql_on: ${covid_data.state} = ${days_since_first_case_state.state} ;;
-  }
   join: prior_days_cases {
     relationship: one_to_one
     type: inner
     sql_on: ${prior_days_cases.country_raw} = ${covid_data.country_raw}
       AND ${prior_days_cases.state} = ${covid_data.state}
       AND ${prior_days_cases.date_date} = ${covid_data.date_date}
-
     ;;
   }
 }
