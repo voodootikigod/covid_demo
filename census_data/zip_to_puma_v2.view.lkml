@@ -46,7 +46,7 @@ view: zip_to_puma_v2 {
   }
 
   dimension: state {
-#     hidden: yes
+    hidden: yes
     type: number
     sql: ${TABLE}.STATE ;;
   }

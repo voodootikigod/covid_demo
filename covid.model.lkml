@@ -53,6 +53,22 @@ explore: tests_by_state {
     relationship: one_to_one
     sql_on: 1 = 1  ;;
   }
+
+  join: acs_puma_state_facts {
+    relationship: many_to_one
+    sql_on: ${tests_by_state.state} = ${acs_puma_state_facts.state_abbreviation} ;;
+  }
+
+#   join: zip_to_puma_v2 {
+#     relationship: many_to_many
+#     sql_on: ${tests_by_state.state} = ${zip_to_puma_v2.state_abbreviation} ;;
+#   }
+#
+#   join: acs_puma_2018 {
+#       relationship: many_to_many
+#       sql_on: ${zip_to_puma_v2.puma} = ${acs_puma_2018.geo_id} ;;
+#     }
+
 }
 
 ############ Census Explores ############

@@ -259,6 +259,15 @@ view: tests_by_state {
     drill_fields: [drill*]
   }
 
+  measure: total_tests_per_capita {
+    group_label: "Dynamic"
+    description: "Tests Per 1K People"
+    type: number
+    sql: 1000*${total} / nullif(${acs_puma_state_facts.population},0) ;;
+    value_format_name: decimal_3
+    drill_fields: [drill*, total_tests_per_capita]
+  }
+
 #   measure: total_tests {
 #     group_label: "Dynamic"
 #     label: "Total Tests"
