@@ -198,13 +198,13 @@ view: prior_days_cases {
   measure: seven_day_average_change_rate {
     type: number
     value_format_name: percent_0
-    sql: ((${covid_data.confirmed_running_total} - ${prior_1_days_cumulative_cases}) / NULLIF(${prior_1_days_cumulative_cases},0)
-    + (${prior_1_days_cumulative_cases} - ${prior_2_days_cumulative_cases}) / NULLIF(${prior_2_days_cumulative_cases},0)
-    + (${prior_2_days_cumulative_cases} - ${prior_3_days_cumulative_cases}) / NULLIF(${prior_3_days_cumulative_cases},0)
-    + (${prior_3_days_cumulative_cases} - ${prior_4_days_cumulative_cases}) / NULLIF(${prior_4_days_cumulative_cases},0)
-    + (${prior_4_days_cumulative_cases} - ${prior_5_days_cumulative_cases}) / NULLIF(${prior_5_days_cumulative_cases},0)
-    + (${prior_5_days_cumulative_cases} - ${prior_6_days_cumulative_cases}) / NULLIF(${prior_6_days_cumulative_cases},0)
-    + (${prior_6_days_cumulative_cases} - ${prior_7_days_cumulative_cases}) / NULLIF(${prior_7_days_cumulative_cases},0))/7.0;;
+    sql: ( ((${covid_data.confirmed_running_total} - ${prior_1_days_cumulative_cases}) / NULLIF(${prior_1_days_cumulative_cases},0))*7.0
+    + ((${prior_1_days_cumulative_cases} - ${prior_2_days_cumulative_cases}) / NULLIF(${prior_2_days_cumulative_cases},0))*6.0
+    + ((${prior_2_days_cumulative_cases} - ${prior_3_days_cumulative_cases}) / NULLIF(${prior_3_days_cumulative_cases},0))*5.0
+    + ((${prior_3_days_cumulative_cases} - ${prior_4_days_cumulative_cases}) / NULLIF(${prior_4_days_cumulative_cases},0))*4.0
+    + ((${prior_4_days_cumulative_cases} - ${prior_5_days_cumulative_cases}) / NULLIF(${prior_5_days_cumulative_cases},0))*3.0
+    + ((${prior_5_days_cumulative_cases} - ${prior_6_days_cumulative_cases}) / NULLIF(${prior_6_days_cumulative_cases},0))*2.0
+    + ((${prior_6_days_cumulative_cases} - ${prior_7_days_cumulative_cases}) / NULLIF(${prior_7_days_cumulative_cases},0)) )/28.0;;
   }
 
 }
