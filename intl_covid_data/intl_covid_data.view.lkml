@@ -1,6 +1,6 @@
 view: covid_data {
   derived_table: {
-    datagroup_trigger: once_daily
+    datagroup_trigger: jhu_data
     sql:
 
     SELECT
@@ -14,8 +14,11 @@ view: covid_data {
       Confirmed as confirmed_cumulative,
       Confirmed - coalesce(LAG(Confirmed, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as confirmed_new_cases,
 
-      Recovered as recovered_cumulative,
-      Recovered - coalesce(LAG(Recovered, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as recovered_new_cases,
+      --- NOTE: data stopped included recoveries
+      NULL as recovered_cumulative,
+      NULL as recovered_new_cases,
+      -- Recovered as recovered_cumulative,
+      --Recovered - coalesce(LAG(Recovered, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as recovered_new_cases,
 
       Deaths as deaths_cumulative,
       Deaths - coalesce(LAG(Deaths, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as deaths_new_cases,

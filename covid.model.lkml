@@ -101,9 +101,15 @@ explore: acs_puma_2018 {
 
 ############ Caching Logic ############
 
-persist_with: once_weekly
+persist_with: jhu_data
 
 ### PDT Timeframes
+
+datagroup: jhu_data {
+  max_cache_age: "12 hours"
+  sql_trigger: SELECT count(*) FROM  `bigquery-public-data.covid19_jhu_csse.summary` ;;
+}
+
 
 datagroup: once_daily {
   max_cache_age: "24 hours"

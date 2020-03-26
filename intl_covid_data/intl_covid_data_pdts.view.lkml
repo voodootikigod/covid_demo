@@ -1,6 +1,6 @@
 view: max_date_intl {
   derived_table: {
-    datagroup_trigger: once_daily
+    datagroup_trigger: jhu_data
     explore_source: covid_data {
       column: max_date {}
     }
@@ -18,7 +18,7 @@ view: max_date_intl {
 
 view: cases_by_country_by_date {
   derived_table: {
-    datagroup_trigger: once_daily
+    datagroup_trigger: jhu_data
     explore_source: covid_data {
       column: country_raw {}
       column: date_raw {}
@@ -95,7 +95,7 @@ view: days_since_first_case_country {
 
 view: days_since_first_case_state {
   derived_table: {
-    datagroup_trigger: once_daily
+    datagroup_trigger: jhu_data
     explore_source: covid_data {
       column: country {}
       column: state {}
@@ -131,7 +131,7 @@ view: days_since_first_case_state {
 view: prior_days_cases {
   view_label: "Trends"
   derived_table: {
-    datagroup_trigger: once_daily
+    datagroup_trigger: jhu_data
     explore_source: covid_data {
       column: date_date {}
       column: country_raw {}
