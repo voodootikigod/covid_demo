@@ -1247,11 +1247,17 @@ view: acs_puma_base_fields {
     sql: ${TABLE}.employed_education_health_social ;;
   }
 
+  measure: total_employed_education_health_social {
+    hidden:yes
+    type: sum
+    sql: ${employed_education_health_social} ;;
+  }
+
   measure: percent_high_risk_employed {
     type: number
-    description: "Percent of population that is employed in healthcare, eduacation and social work"
+    description: "Percent of population that is employed in healthcare, education and social work"
     view_label: "Occupation"
-    sql: 1.0*sum(${employed_education_health_social})/nullif(${total_pop},0) ;;
+    sql: 1.0*${total_employed_education_health_social}/nullif(${total_pop},0) ;;
     value_format_name: percent_2
   }
 
