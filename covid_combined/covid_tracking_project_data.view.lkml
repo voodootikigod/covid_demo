@@ -1,28 +1,35 @@
-view: tests_by_state {
+view: covid_tracking_project_sample_final {
+  # sql_table_name: `lookerdata.covid19.covid_tracking_project_sample_final` ;;
   derived_table: {
-    datagroup_trigger: once_daily
+    datagroup_trigger: covid_data
     sql:
-    SELECT
-      a.state,
-      b.region,
-      date,
-      total as total_cumulative,
-      total - coalesce(LAG(total, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as total_new_cases,
-      death as death_cumulative,
-      death - coalesce(LAG(death, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as death_new_cases,
-      hospitalized as hospitalized_cumulative,
-      hospitalized - coalesce(LAG(hospitalized, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as hospitalized_new_cases,
-      positive as positive_cumulative,
-      positive - coalesce(LAG(positive, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as positive_new_cases,
-      pending as pending_cumulative,
-      pending - coalesce(LAG(pending, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as pending_new_cases,
-      negative as negative_cumulative,
-      negative - coalesce(LAG(negative, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as negative_new_cases,
-    FROM `lookerdata.covid19.tests_by_state` a
-     LEFT JOIN `lookerdata.covid19.state_region` b
-      ON a.state = b.state_code ;;
+      SELECT
+        b.state,
+        date as measurement_date,
+
+        total as total_cumulative,
+        total - coalesce(LAG(total, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as total_new_cases,
+
+        death as death_cumulative,
+        death - coalesce(LAG(death, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as death_new_cases,
+
+        hospitalized as hospitalized_cumulative,
+        hospitalized - coalesce(LAG(hospitalized, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as hospitalized_new_cases,
+
+        positive as positive_cumulative,
+        positive - coalesce(LAG(positive, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as positive_new_cases,
+
+        pending as pending_cumulative,
+        pending - coalesce(LAG(pending, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as pending_new_cases,
+
+        negative as negative_cumulative,
+        negative - coalesce(LAG(negative, 1) OVER (PARTITION BY a.state  ORDER BY date ASC),0) as negative_new_cases,
+
+      FROM `lookerdata.covid19.covid_tracking_project_sample_final` a
+      LEFT JOIN `lookerdata.covid19.state_region` b
+        ON a.state = b.state_code
+    ;;
   }
-  # sql_table_name: `covid-271711.covid19.tests_by_state` ;;
 
 ####################
 #### Original Dimensions ####
@@ -33,12 +40,13 @@ view: tests_by_state {
   dimension: pk {
     primary_key: yes
     hidden: yes
-    sql: concat(${state}, ${date_raw}) ;;
+    sql: concat(${state}, ${measurement_raw}) ;;
   }
 
 ## Date & Location
 
   dimension: state {
+    hidden: yes
     map_layer_name: us_states
     type: string
     sql: ${TABLE}.state ;;
@@ -54,31 +62,20 @@ view: tests_by_state {
     }
   }
 
-  dimension: region {
-    type: string
-    sql: ${TABLE}.region ;;
-    drill_fields: [state]
-    link: {
-      label: "See original data"
-      url: "https://covidtracking.com/us-daily/"
-      icon_url: "https://looker.com/favicon.ico"
-    }
-  }
-
-  dimension_group: date {
+  dimension_group: measurement {
+    hidden: yes
     type: time
     timeframes: [
       raw,
-      date,
-      week,
-      month,
-      quarter,
-      year
+      date
     ]
+#       week,
+#       month,
+#       quarter,
+#       year
     convert_tz: no
     datatype: date
-    sql: ${TABLE}.date ;;
-    drill_fields: [region, state]
+    sql: ${TABLE}.measurement_date ;;
   }
 
 ### KPIs
@@ -172,148 +169,81 @@ view: tests_by_state {
   }
 
   dimension: is_max_date {
+    hidden: yes
     type: yesno
-    sql: ${date_raw} = ${max_date_us.max_date_raw} ;;
+    sql: ${measurement_raw} = ${max_date_tracking_project.max_date_raw} ;;
   }
 
 ####################
 #### Measures ####
 ####################
 
-  parameter: new_vs_running_total {
-    type: unquoted
-    default_value: "new_cases"
-    allowed_value: {
-      label: "New Cases"
-      value: "new_cases"
-    }
-    allowed_value: {
-      label: "Running Total"
-      value: "running_total"
-    }
-  }
-
-  measure: deaths {
-    group_label: "Dynamic"
-    label: "Deaths"
-    type: number
-    sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${death_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${death_running_total}
-        {% endif %} ;;
-    drill_fields: [drill*]
-  }
-
   measure: hospitalizations {
-    group_label: "Dynamic"
+    group_label: "Dynamic (Testing - US Only)"
     label: "Hospitalizations"
     type: number
     sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${hospitalized_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${hospitalized_running_total}
+        {% if jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'new_cases' %} ${hospitalized_new}
+        {% elsif jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'running_total' %} ${hospitalized_running_total}
         {% endif %} ;;
     drill_fields: [drill*]
   }
 
   measure: negative_test {
-    group_label: "Dynamic"
+    group_label: "Dynamic (Testing - US Only)"
     label: "Negative Test Results"
     type: number
     sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${negative_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${negative_running_total}
+        {% if jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'new_cases' %} ${negative_new}
+        {% elsif jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'running_total' %} ${negative_running_total}
         {% endif %} ;;
     drill_fields: [drill*]
   }
 
   measure: pending_test {
-    group_label: "Dynamic"
+    group_label: "Dynamic (Testing - US Only)"
     label: "Pending Test Results"
     type: number
     sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${pending_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${pending_running_total}
+        {% if jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'new_cases' %} ${pending_new}
+        {% elsif jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'running_total' %} ${pending_running_total}
         {% endif %} ;;
     drill_fields: [drill*]
   }
 
   measure: positive_test {
-    group_label: "Dynamic"
+    group_label: "Dynamic (Testing - US Only)"
     label: "Positive Test Results"
     type: number
     sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${positive_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${positive_running_total}
+        {% if jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'new_cases' %} ${positive_new}
+        {% elsif jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'running_total' %} ${positive_running_total}
         {% endif %} ;;
     drill_fields: [drill*]
   }
 
   measure: total {
-    group_label: "Dynamic"
+    group_label: "Dynamic (Testing - US Only)"
     label: "Total Tests"
     type: number
     sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${total_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${total_running_total}
+        {% if jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'new_cases' %} ${total_new}
+        {% elsif jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'running_total' %} ${total_running_total}
         {% endif %} ;;
     drill_fields: [drill*]
   }
 
-  measure: total_tests_per_capita {
-    group_label: "Dynamic"
-    description: "Tests Per 1K People"
-    type: number
-    sql: 1000*${total} / nullif(${acs_puma_state_facts.population},0) ;;
-    value_format_name: decimal_3
-    drill_fields: [drill*, total_tests_per_capita]
-  }
-
-#   measure: total_tests {
-#     group_label: "Dynamic"
-#     label: "Total Tests"
+#   measure: total_tests_per_capita {
+#     group_label: "Dynamic (Testing - US Only)"
+#     description: "Tests Per 1K People"
 #     type: number
-#     sql:
-#         {% if new_vs_running_total._parameter_value == 'new_cases' %} ${total_tests_new}
-#         {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${total_tests_running_total}
-#         {% endif %} ;;
-#     drill_fields: [drill*]
+#     sql: 1000*${total} / nullif(${acs_puma_state_facts.population},0) ;;
+#     value_format_name: decimal_3
+#     drill_fields: [drill*, total_tests_per_capita]
 #   }
 
-  measure: death_new {
-    group_label: "New Cases"
-    label: "Deaths (New)"
-    type: sum
-    sql: ${death_new_cases} ;;
-  }
-
-  measure: death_option_1 {
-    hidden: yes
-    type: sum
-    sql: ${death_cumulative} ;;
-  }
-
-  measure: death_option_2 {
-    hidden: yes
-    type: sum
-    sql: ${death_cumulative} ;;
-    filters: {
-      field: is_max_date
-      value: "Yes"
-    }
-  }
-
-  measure: death_running_total {
-    group_label: "Running Total"
-    label: "Deaths (Running Total)"
-    type: number
-    sql:
-    {% if tests_by_state.date_date._in_query %} ${death_option_1}
-    {% else %}  ${death_option_2}
-    {% endif %} ;;
-  }
-
   measure: hospitalized_new {
-    group_label: "New Cases"
+    group_label: "New Cases (Testing - US Only)"
     label: "Hospitalizations (New)"
     type: sum
     sql: ${hospitalized_new_cases} ;;
@@ -336,17 +266,17 @@ view: tests_by_state {
   }
 
   measure: hospitalized_running_total {
-    group_label: "Running Total"
+    group_label: "Running Total (Testing - US Only)"
     label: "Hospitalizations (Running Total)"
     type: number
     sql:
-    {% if tests_by_state.date_date._in_query %} ${hospitalized_option_1}
+    {% if covid_tracking_project_sample_final.measurement_date._in_query %} ${hospitalized_option_1}
     {% else %}  ${hospitalized_option_2}
     {% endif %} ;;
   }
 
   measure: negative_new {
-    group_label: "New Cases"
+    group_label: "New Cases (Testing - US Only)"
     label: "Negative Test Results (New)"
     type: sum
     sql: ${negative_new_cases} ;;
@@ -369,17 +299,17 @@ view: tests_by_state {
   }
 
   measure: negative_running_total {
-    group_label: "Running Total"
+    group_label: "Running Total (Testing - US Only)"
     label: "Negative Test Results (Running Total)"
     type: number
     sql:
-    {% if tests_by_state.date_date._in_query %} ${negative_option_1}
+    {% if covid_tracking_project_sample_final.measurement_date._in_query %} ${negative_option_1}
     {% else %}  ${negative_option_2}
     {% endif %} ;;
   }
 
   measure: pending_new {
-    group_label: "New Cases"
+    group_label: "New Cases (Testing - US Only)"
     label: "Pending Test Results (New)"
     type: sum
     sql: ${pending_new_cases} ;;
@@ -402,17 +332,17 @@ view: tests_by_state {
   }
 
   measure: pending_running_total {
-    group_label: "Running Total"
+    group_label: "Running Total (Testing - US Only)"
     label: "Pending Test Results (Running Total)"
     type: number
     sql:
-    {% if tests_by_state.date_date._in_query %} ${pending_option_1}
+    {% if covid_tracking_project_sample_final.measurement_date._in_query %} ${pending_option_1}
     {% else %}  ${pending_option_2}
     {% endif %} ;;
   }
 
   measure: positive_new {
-    group_label: "New Cases"
+    group_label: "New Cases (Testing - US Only)"
     label: "Positive Test Results (New)"
     type: sum
     sql: ${positive_new_cases} ;;
@@ -435,17 +365,17 @@ view: tests_by_state {
   }
 
   measure: positive_running_total {
-    group_label: "Running Total"
+    group_label: "Running Total (Testing - US Only)"
     label: "Positive Test Results (Running Total)"
     type: number
     sql:
-    {% if tests_by_state.date_date._in_query %} ${positive_option_1}
+    {% if covid_tracking_project_sample_final.measurement_date._in_query %} ${positive_option_1}
     {% else %}  ${positive_option_2}
     {% endif %} ;;
   }
 
   measure: total_new {
-    group_label: "New Cases"
+    group_label: "New Cases (Testing - US Only)"
     label: "Total Tests (New)"
     type: sum
     sql: ${total_new_cases} ;;
@@ -468,17 +398,17 @@ view: tests_by_state {
   }
 
   measure: total_running_total {
-    group_label: "Running Total"
+    group_label: "Running Total (Testing - US Only)"
     label: "Total Tests (Running Total)"
     type: number
     sql:
-    {% if tests_by_state.date_date._in_query %} ${total_option_1}
+    {% if covid_tracking_project_sample_final.measurement_date._in_query %} ${total_option_1}
     {% else %}  ${total_option_2}
     {% endif %} ;;
   }
 
   measure: positive_rate {
-    group_label: "Rates"
+    group_label: "Rates (Testing - US Only)"
     description: "Of all tests, how many are positive?"
     type: number
     sql: 1.0 * ${positive_running_total} / nullif((${total_running_total}),0);;
@@ -486,7 +416,7 @@ view: tests_by_state {
   }
 
   measure: pending_rate {
-    group_label: "Rates"
+    group_label: "Rates (Testing - US Only)"
     description: "Of all tests, how many are pending?"
     type: number
     sql: 1.0 * ${pending_running_total} / nullif((${total_running_total}),0);;
@@ -494,34 +424,18 @@ view: tests_by_state {
   }
 
   measure: negative_rate {
-    group_label: "Rates"
+    group_label: "Rates (Testing - US Only)"
     description: "Of all tests, how many are negative?"
     type: number
     sql: 1.0 * ${negative_running_total} / nullif((${total_running_total}),0);;
     value_format_name: percent_1
   }
 
-  measure: case_fatality_rate {
-    group_label: "Rates"
-    description: "What percent of infections have resulted in death?"
-    type: number
-    sql: 1.0 * ${death_running_total}/NULLIF(${positive_running_total}, 0);;
-    value_format_name: percent_1
-  }
-
   measure: case_hospitalization_rate {
-    group_label: "Rates"
+    group_label: "Rates (Testing - US Only)"
     description: "What percent of infections have resulted in hospitalization?"
     type: number
     sql: 1.0 * ${hospitalized_running_total}/NULLIF(${positive_running_total}, 0);;
-    value_format_name: percent_1
-  }
-
-  measure: case_fatality_or_hospitalization_rate {
-    group_label: "Rates"
-    description: "What percent of infections have resulted in hospitalization or death?"
-    type: number
-    sql: 1.0 * (${death_running_total} + ${hospitalized_running_total}) /NULLIF(${positive_running_total}, 0);;
     value_format_name: percent_1
   }
 
@@ -534,13 +448,80 @@ view: tests_by_state {
   measure: max_date {
     hidden: yes
     type: date
-    sql: max(${date_raw}) ;;
+    sql: max(${measurement_raw}) ;;
+  }
+
+#### REDUNDANT FROM JHU DATA
+
+  measure: deaths {
+    hidden: yes
+    group_label: "Dynamic (Testing - US Only)"
+    label: "Deaths"
+    type: number
+    sql:
+        {% if jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'new_cases' %} ${death_new}
+        {% elsif jhu_sample_county_level_final.new_vs_running_total._parameter_value == 'running_total' %} ${death_running_total}
+        {% endif %} ;;
+    drill_fields: [drill*]
+  }
+
+  measure: death_new {
+    hidden: yes
+    group_label: "New Cases (Testing - US Only)"
+    label: "Deaths (New)"
+    type: sum
+    sql: ${death_new_cases} ;;
+  }
+
+  measure: death_option_1 {
+    hidden: yes
+    type: sum
+    sql: ${death_cumulative} ;;
+  }
+
+  measure: death_option_2 {
+    hidden: yes
+    type: sum
+    sql: ${death_cumulative} ;;
+    filters: {
+      field: is_max_date
+      value: "Yes"
+    }
+  }
+
+  measure: death_running_total {
+    hidden: yes
+    group_label: "Running Total (Testing - US Only)"
+    label: "Deaths (Running Total)"
+    type: number
+    sql:
+    {% if covid_tracking_project_sample_final.measurement_date._in_query %} ${death_option_1}
+    {% else %}  ${death_option_2}
+    {% endif %} ;;
+  }
+
+  measure: case_fatality_rate {
+    hidden: yes
+    group_label: "Rates (Testing - US Only)"
+    description: "What percent of infections have resulted in death?"
+    type: number
+    sql: 1.0 * ${death_running_total}/NULLIF(${positive_running_total}, 0);;
+    value_format_name: percent_1
+  }
+
+  measure: case_fatality_or_hospitalization_rate {
+    hidden: yes
+    group_label: "Rates (Testing - US Only)"
+    description: "What percent of infections have resulted in hospitalization or death?"
+    type: number
+    sql: 1.0 * (${death_running_total} + ${hospitalized_running_total}) /NULLIF(${positive_running_total}, 0);;
+    value_format_name: percent_1
   }
 
   set: drill {
     fields: [
       state,
-      date_raw,
+      measurement_date,
       total,
       positive_test,
       pending_test,
@@ -549,15 +530,4 @@ view: tests_by_state {
       hospitalizations
     ]
   }
-
-  #   dimension_group: date_checked {
-#     hidden: yes
-#     type: time
-#     timeframes: [
-#       raw,
-#       date
-#     ]
-#     sql: ${TABLE}.dateChecked ;;
-#   }
-
 }

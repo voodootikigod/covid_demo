@@ -1,6 +1,6 @@
 view: covid_data {
   derived_table: {
-    datagroup_trigger: once_daily
+    datagroup_trigger: jhu_data
     sql:
 
     SELECT
@@ -14,8 +14,11 @@ view: covid_data {
       Confirmed as confirmed_cumulative,
       Confirmed - coalesce(LAG(Confirmed, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as confirmed_new_cases,
 
-      Recovered as recovered_cumulative,
-      Recovered - coalesce(LAG(Recovered, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as recovered_new_cases,
+      --- NOTE: data stopped included recoveries
+      0 as recovered_cumulative,
+      0 as recovered_new_cases,
+      -- Recovered as recovered_cumulative,
+      --Recovered - coalesce(LAG(Recovered, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as recovered_new_cases,
 
       Deaths as deaths_cumulative,
       Deaths - coalesce(LAG(Deaths, 1) OVER (PARTITION BY coalesce(a.province_state,''), a.country_region  ORDER BY Date ASC),0) as deaths_new_cases,
@@ -138,6 +141,28 @@ view: covid_data {
     drill_fields: [region_country, country, state]
   }
 
+  parameter: minimum_number_cases {
+    label: "Minimum Number of cases (X)"
+    description: "Modify your analysis to start counting days since outbreak to start with a minumum of X cases."
+    type: number
+    default_value: "1"
+  }
+
+  dimension_group: country_outbreak_start {
+    type: time
+    timeframes: [raw, date]
+    sql: (SELECT CAST(MIN(foobar.Date) AS TIMESTAMP)
+      FROM ${covid_data.SQL_TABLE_NAME} as foobar
+      WHERE foobar.confirmed_cumulative >= {% parameter minimum_number_cases %}
+      AND ${TABLE}.country = foobar.country )  ;;
+  }
+
+  dimension: days_since_first_outbreak_country {
+    label: "Days Since First Oubreak (X cases) in Country"
+    type:  number
+    sql: date_diff(${covid_data.date_date},${country_outbreak_start_date},  day);;
+  }
+
   dimension: confirmed_cumulative {
     hidden: yes
     type: number
@@ -173,7 +198,6 @@ view: covid_data {
     type: number
     sql: ${TABLE}.recovered_new_cases ;;
   }
-
 
   dimension: x {
     hidden: yes
@@ -242,17 +266,17 @@ view: covid_data {
     sql: ${recovered_new_cases} + ${deaths_new_cases} ;;
   }
 
-  dimension: days_since_first_case {
-    type: number
-    sql:
-
-        DATE_DIFF(${date_raw},
-          {% if covid_data.country._in_query %} ${days_since_first_case_country.min_raw}
-          {% else %} ${days_since_first_case_state.min_raw}
-          {% endif %}
-        , DAY) ;;
-        # {% elsif country_vs_state._parameter_value == 'state' %}
-    }
+#   dimension: days_since_first_case {
+#     type: number
+#     sql:
+#
+#         DATE_DIFF(${date_raw},
+#           {% if covid_data.country._in_query %} ${days_since_first_case_country.min_raw}
+#           {% else %} ${days_since_first_case_state.min_raw}
+#           {% endif %}
+#         , DAY) ;;
+#         # {% elsif country_vs_state._parameter_value == 'state' %}
+#     }
 
     dimension: is_max_date {
       type: yesno
@@ -371,7 +395,7 @@ view: covid_data {
       label: "Confirmed Cases (Running Total)"
       type: number
       sql:
-          {% if covid_data.date_date._in_query %} ${confirmed_option_1}
+          {% if covid_data.date_date._in_query or covid_data.days_since_first_outbreak_country._in_query %} ${confirmed_option_1}
           {% else %}  ${confirmed_option_2}
           {% endif %} ;;
     }
@@ -404,7 +428,7 @@ view: covid_data {
       label: "Deaths (Running Total)"
       type: number
       sql:
-          {% if covid_data.date_date._in_query %} ${deaths_option_1}
+          {% if covid_data.date_date._in_query or covid_data.days_since_first_outbreak_country._in_query %} ${deaths_option_1}
           {% else %}  ${deaths_option_2}
           {% endif %} ;;
     }
@@ -437,7 +461,7 @@ view: covid_data {
       label: "Recoveries (Running Total)"
       type: number
       sql:
-          {% if covid_data.date_date._in_query %} ${recovered_option_1}
+          {% if covid_data.date_date._in_query or covid_data.days_since_first_outbreak_country._in_query %} ${recovered_option_1}
           {% else %}  ${recovered_option_2}
           {% endif %} ;;
     }
@@ -470,7 +494,7 @@ view: covid_data {
       label: "Active Cases (Running Total)"
       type: number
       sql:
-          {% if covid_data.date_date._in_query %} ${active_option_1}
+          {% if covid_data.date_date._in_query or covid_data.days_since_first_outbreak_country._in_query %} ${active_option_1}
           {% else %}  ${active_option_2}
           {% endif %} ;;
     }
@@ -503,7 +527,7 @@ view: covid_data {
       label: "Closed Cases (Running Total)"
       type: number
       sql:
-          {% if covid_data.date_date._in_query %} ${closed_option_1}
+          {% if covid_data.date_date._in_query or covid_data.days_since_first_outbreak_country._in_query %} ${closed_option_1}
           {% else %}  ${closed_option_2}
           {% endif %} ;;
     }

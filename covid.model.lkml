@@ -1,9 +1,97 @@
 connection: "lookerdata"
 
+include: "/covid_combined/*.view.lkml"
+include: "/census_data/*.view.lkml"
 include: "/intl_covid_data/*.view.lkml"
 include: "/us_covid_data/*.view.lkml"
+
 # include: "/**/view.lkml"                   # include all views in this project
 # include: "/dashboards/*.dashboard.lookml"   # include a LookML dashboard called my_dashboard
+
+############ New COVID ############
+## Note: this dataset has real data for JHU Daily Summary & COVID Tracking Project for March 26, 2020
+## All other data (March 1 - 25) is extrapolated from those values
+
+explore: jhu_sample_county_level_final {
+  label: "COVID"
+  view_label: " COVID19"
+
+  join: covid_tracking_project_sample_final {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on:
+          ${jhu_sample_county_level_final.province_state} = ${covid_tracking_project_sample_final.state}
+      AND ${jhu_sample_county_level_final.measurement_raw} = ${covid_tracking_project_sample_final.measurement_raw}
+    ;;
+  }
+
+  join: max_date_covid {
+    relationship: one_to_one
+    sql_on: 1 = 1  ;;
+  }
+
+  join: max_date_tracking_project {
+    relationship: one_to_one
+    sql_on: 1 = 1  ;;
+  }
+
+  join: state_region {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.province_state} = ${state_region.state} ;;
+  }
+
+  join: country_region {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.country_region} = ${country_region.country} ;;
+  }
+
+  join: prior_days_cases_covid {
+    view_label: " COVID19"
+    relationship: one_to_one
+    sql_on:
+        ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
+    AND ${jhu_sample_county_level_final.combined_key} = ${prior_days_cases_covid.combined_key};;
+  }
+}
+
+
+############ Census ############
+
+explore: acs_zip_codes_2017_5yr {
+  label: "ACS 2017 Data, By Zipcode"
+  join: us_zipcode_boundaries {
+    relationship: one_to_one
+    sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
+  }
+  join: zipcode_facts {
+    relationship: one_to_one
+    sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
+  }
+}
+
+explore: acs_puma_2018 {
+  group_label: "IN PROGRESS"
+  label: "DRAFT: Census Data (PUMA Level)"
+
+  join: zip_to_puma_v2 {
+    relationship: many_to_many
+    sql_on: ${acs_puma_2018.geo_id} = ${zip_to_puma_v2.puma} ;;
+  }
+
+#   join: us_zipcode_boundaries {
+#     relationship: one_to_one
+#     sql_on: ${zip_to_puma_v2.zcta5} = ${us_zipcode_boundaries.zip_code} ;;
+#   }
+#   join: zipcode_facts {
+#     relationship: one_to_one
+#     sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
+#   }
+
+}
+
+############ OLD INTL ############
 
 explore: covid_data {
 
@@ -13,36 +101,45 @@ explore: covid_data {
     sql_on: 1 = 1  ;;
   }
 
-  join: cases_by_country_by_date {
-    # fields: []
-    relationship: many_to_one
-    sql_on:
-          ${covid_data.country_raw} = ${cases_by_country_by_date.country_raw}
-      AND ${covid_data.date_raw} = ${cases_by_country_by_date.date_raw}
-      ;;
-  }
+#   join: cases_by_country_by_date {
+#     # fields: []
+#     relationship: many_to_one
+#     sql_on:
+#           ${covid_data.country_raw} = ${cases_by_country_by_date.country_raw}
+#       AND ${covid_data.date_raw} = ${cases_by_country_by_date.date_raw}
+#       ;;
+#   }
+#
+#   join: days_since_first_case_country {
+#     fields: []
+#     relationship: many_to_one
+#     sql_on: ${covid_data.country_raw} = ${days_since_first_case_country.country_raw} ;;
+#   }
+#
+#   join: days_since_first_case_state {
+#     fields: []
+#     relationship: many_to_one
+#     sql_on: ${covid_data.state} = ${days_since_first_case_state.state} ;;
+#   }
 
-  join: days_since_first_case_country {
-    fields: []
-    relationship: many_to_one
-    sql_on: ${covid_data.country_raw} = ${days_since_first_case_country.country_raw} ;;
-  }
-
-  join: days_since_first_case_state {
-    fields: []
-    relationship: many_to_one
-    sql_on: ${covid_data.state} = ${days_since_first_case_state.state} ;;
-  }
   join: prior_days_cases {
     relationship: one_to_one
     type: inner
     sql_on: ${prior_days_cases.country_raw} = ${covid_data.country_raw}
       AND ${prior_days_cases.state} = ${covid_data.state}
       AND ${prior_days_cases.date_date} = ${covid_data.date_date}
-
     ;;
   }
 }
+
+
+
+explore: italy {
+  from: italy_regions
+}
+
+
+############ OLD US ############
 
 explore: tests_by_state {
 
@@ -51,24 +148,30 @@ explore: tests_by_state {
     relationship: one_to_one
     sql_on: 1 = 1  ;;
   }
+
+  join: acs_puma_state_facts {
+    relationship: many_to_one
+    sql_on: ${tests_by_state.state} = ${acs_puma_state_facts.state_abbreviation} ;;
+  }
+
 }
-
-explore: italy {
-  from: italy_regions
-
-#   join: max_date_italy {
-#     fields: []
-#     relationship: one_to_one
-#     sql_on: 1 = 1  ;;
-#   }
-}
-
 
 ############ Caching Logic ############
 
-persist_with: once_weekly
+persist_with: covid_data
 
 ### PDT Timeframes
+
+datagroup: covid_data {
+  max_cache_age: "12 hours"
+  sql_trigger: SELECT count(*) FROM  `lookerdata.covid19.jhu_sample_county_level_final` ;;
+}
+
+datagroup: jhu_data {
+  max_cache_age: "12 hours"
+  sql_trigger: SELECT count(*) FROM  `bigquery-public-data.covid19_jhu_csse.summary` ;;
+}
+
 
 datagroup: once_daily {
   max_cache_age: "24 hours"
@@ -90,6 +193,7 @@ datagroup: once_yearly {
   sql_trigger: SELECT extract(year from current_date()) ;;
 }
 
+
 ############ Map Layers #################
 
 map_layer: regioni_italiani {
@@ -109,4 +213,13 @@ map_layer: province_italiane {
   min_zoom_level: 3
   max_zoom_level: 12
   property_key: "NOME_PRO"
+}
+map_layer: us_pumas {
+  format: "vector_tile_region"
+  url: "https://a.tiles.mapbox.com/v4/looker-maps.3ip3jv1a/{z}/{x}/{y}.mvt?access_token=@{mapbox_api_key}"
+  feature_key: "ipums_puma_2010geojson"
+  extents_json_url: "https://rawcdn.githack.com/dwmintz/looker_map_layers/4a48ef77a012a9be8d9e1df7aa38e783f5f81e82/puma_extents.json"
+  min_zoom_level: 3
+  max_zoom_level: 13
+  property_key: "GEOID"
 }
