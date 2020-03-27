@@ -16,7 +16,22 @@ explore: jhu_sample_county_level_final {
   label: "COVID"
   view_label: " COVID19"
 
+  join: covid_tracking_project_sample_final {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on:
+          ${jhu_sample_county_level_final.province_state} = ${covid_tracking_project_sample_final.state}
+      AND ${jhu_sample_county_level_final.measurement_raw} = ${covid_tracking_project_sample_final.measurement_raw}
+
+    ;;
+  }
+
   join: max_date_covid {
+    relationship: one_to_one
+    sql_on: 1 = 1  ;;
+  }
+
+  join: max_date_tracking_project {
     relationship: one_to_one
     sql_on: 1 = 1  ;;
   }

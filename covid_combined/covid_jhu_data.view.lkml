@@ -47,8 +47,14 @@ view: jhu_sample_county_level_final {
 #### Original Dimensions ####
 ####################
 
-  dimension: combined_key {
+  dimension: pk {
     primary_key: yes
+    hidden: yes
+    type: string
+    sql: concat(${combined_key},${measurement_raw}) ;;
+  }
+
+  dimension: combined_key {
     hidden: yes
     type: string
     sql: ${TABLE}.combined_key ;;
@@ -86,13 +92,24 @@ view: jhu_sample_county_level_final {
         -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
       end ;;
     drill_fields: [province_state]
-    # sql: ${TABLE}.country_region ;;
+  }
+
+  dimension: country_raw {
+    hidden: yes
+    type: string
+    sql: ${TABLE}.country_region ;;
   }
 
   dimension: county {
     hidden: yes
     type: string
     sql: ${TABLE}.county ;;
+  }
+
+  dimension: county_non_null {
+    hidden: yes
+    type: string
+    sql: coalesce(${county},${province_state},${country_region}) ;;
   }
 
   dimension: lat {
@@ -205,6 +222,7 @@ view: jhu_sample_county_level_final {
   }
 
   dimension: is_max_date {
+    hidden: yes
     type: yesno
     sql: ${measurement_raw} = ${max_date_covid.max_date_raw} ;;
   }
@@ -216,62 +234,77 @@ view: jhu_sample_county_level_final {
     default_value: "1"
   }
 
-  dimension_group: country_outbreak_start {
+  dimension_group: county_outbreak_start {
     hidden: yes
     type: time
     timeframes: [raw, date]
-    sql: (SELECT CAST(MIN(foobar.Date) AS TIMESTAMP)
+    sql: (SELECT CAST(MIN(foobar.measurement_date) AS TIMESTAMP)
       FROM ${jhu_sample_county_level_final.SQL_TABLE_NAME} as foobar
       WHERE foobar.confirmed_cumulative >= {% parameter minimum_number_cases %}
-      AND ${TABLE}.country = foobar.country )  ;;
+      AND coalesce(${TABLE}.county, ${TABLE}.province_state, ${TABLE}.country_region) = coalesce(foobar.county,foobar.province_state,foobar.country_region )  )  ;;
   }
 
   dimension_group: state_outbreak_start {
     hidden: yes
     type: time
     timeframes: [raw, date]
-    sql: (SELECT CAST(MIN(foobar.Date) AS TIMESTAMP)
+    sql: (SELECT CAST(MIN(foobar.measurement_date) AS TIMESTAMP)
       FROM ${jhu_sample_county_level_final.SQL_TABLE_NAME} as foobar
       WHERE foobar.confirmed_cumulative >= {% parameter minimum_number_cases %}
-      AND ${TABLE}.province_state = foobar.province_state )  ;;
+      AND coalesce(${TABLE}.province_state, ${TABLE}.country_region) = coalesce(foobar.province_state,foobar.country_region ) )  ;;
   }
 
-  dimension_group: county_outbreak_start {
+  dimension_group: country_outbreak_start {
     hidden: yes
     type: time
     timeframes: [raw, date]
-    sql: (SELECT CAST(MIN(foobar.Date) AS TIMESTAMP)
+    sql: (SELECT CAST(MIN(foobar.measurement_date) AS TIMESTAMP)
       FROM ${jhu_sample_county_level_final.SQL_TABLE_NAME} as foobar
       WHERE foobar.confirmed_cumulative >= {% parameter minimum_number_cases %}
-      AND ${TABLE}.county = foobar.county )  ;;
+      AND ${TABLE}.country_region = foobar.country_region ) ;;
   }
 
-  dimension: days_since_first_outbreak_country {
+  dimension_group: system_outbreak_start {
     hidden: yes
-    type:  number
-    sql: date_diff(${jhu_sample_county_level_final.measurement_raw},${country_outbreak_start_raw},  day);;
-  }
-
-  dimension: days_since_first_outbreak_state {
-    hidden: yes
-    type:  number
-    sql: date_diff(${jhu_sample_county_level_final.measurement_raw},${state_outbreak_start_raw},  day);;
+    type: time
+    timeframes: [raw, date]
+    sql: (SELECT CAST(MIN(foobar.measurement_date) AS TIMESTAMP)
+      FROM ${jhu_sample_county_level_final.SQL_TABLE_NAME} as foobar
+      WHERE foobar.confirmed_cumulative >= {% parameter minimum_number_cases %} );;
   }
 
   dimension: days_since_first_outbreak_county {
     hidden: yes
     type:  number
-    sql: date_diff(${jhu_sample_county_level_final.measurement_raw},${county_outbreak_start_raw},  day);;
+    sql: date_diff(${measurement_raw},${county_outbreak_start_date},  day);;
+  }
+
+  dimension: days_since_first_outbreak_state {
+    hidden: yes
+    type:  number
+    sql: date_diff(${measurement_raw},${state_outbreak_start_date},  day);;
+  }
+
+  dimension: days_since_first_outbreak_country {
+    hidden: yes
+    type:  number
+    sql: date_diff(${measurement_raw},${country_outbreak_start_date},  day);;
+  }
+
+  dimension: days_since_first_outbreak_system {
+    hidden: yes
+    type:  number
+    sql: date_diff(${measurement_raw},${system_outbreak_start_date},  day);;
   }
 
   dimension: days_since_first_outbreak {
     label: "Days Since Oubreak of X cases"
-    type: number
+    type:  number
     sql:
           {% if jhu_sample_county_level_final.fips._in_query %} ${days_since_first_outbreak_county}
-          {% elsif jhu_sample_county_level_final.province_state._in_query %}  ${days_since_first_outbreak_state}
-          {% elsif jhu_sample_county_level_final.country_region._in_query %}  ${days_since_first_outbreak_country}
-          {% else %}  NULL
+          {% elsif jhu_sample_county_level_final.province_state._in_query %} ${days_since_first_outbreak_state}
+          {% elsif jhu_sample_county_level_final.country_region._in_query %} ${days_since_first_outbreak_country}
+          {% else %}  ${days_since_first_outbreak_system}
           {% endif %} ;;
   }
 
@@ -293,7 +326,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: confirmed_cases {
-    group_label: "Dynamic"
+    group_label: " Dynamic"
     label: "Confirmed Cases"
     type: number
     sql:
@@ -304,7 +337,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: deaths {
-    group_label: "Dynamic"
+    group_label: " Dynamic"
     label: "Deaths"
     type: number
     sql:
@@ -315,7 +348,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: recoveries {
-    group_label: "Dynamic"
+    group_label: " Dynamic"
     label: "Recoveries"
     type: number
     sql:
@@ -326,7 +359,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: active_cases {
-    group_label: "Dynamic"
+    group_label: " Dynamic"
     label: "Active Cases"
     type: number
     sql:
@@ -337,7 +370,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: closed_cases {
-    group_label: "Dynamic"
+    group_label: " Dynamic"
     label: "Closed Cases"
     type: number
     sql:
@@ -348,7 +381,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: confirmed_new {
-    group_label: "New Cases"
+    group_label: " New Cases"
     label: "Confirmed Cases (New)"
     type: sum
     sql: ${confirmed_new_cases} ;;
@@ -371,7 +404,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: confirmed_running_total {
-    group_label: "Running Total"
+    group_label: " Running Total"
     label: "Confirmed Cases (Running Total)"
     type: number
     sql:
@@ -381,7 +414,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: deaths_new {
-    group_label: "New Cases"
+    group_label: " New Cases"
     label: "Deaths (New)"
     type: sum
     sql: ${deaths_new_cases} ;;
@@ -404,7 +437,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: deaths_running_total {
-    group_label: "Running Total"
+    group_label: " Running Total"
     label: "Deaths (Running Total)"
     type: number
     sql:
@@ -414,7 +447,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: recovery_new {
-    group_label: "New Cases"
+    group_label: " New Cases"
     label: "Recoveries (New)"
     type: sum
     sql: ${recovered_new_cases} ;;
@@ -437,7 +470,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: recovery_running_total {
-    group_label: "Running Total"
+    group_label: " Running Total"
     label: "Recoveries (Running Total)"
     type: number
     sql:
@@ -447,7 +480,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: active_new {
-    group_label: "New Cases"
+    group_label: " New Cases"
     label: "Active Cases (New)"
     type: sum
     sql: ${active_new_cases} ;;
@@ -470,7 +503,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: active_running_total {
-    group_label: "Running Total"
+    group_label: " Running Total"
     label: "Active Cases (Running Total)"
     type: number
     sql:
@@ -480,7 +513,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: closed_new {
-    group_label: "New Cases"
+    group_label: " New Cases"
     label: "Closed Cases (New)"
     type: sum
     sql: ${closed_new_cases} ;;
@@ -503,7 +536,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: closed_running_total {
-    group_label: "Running Total"
+    group_label: " Running Total"
     label: "Closed Cases (Running Total)"
     type: number
     sql:
@@ -513,7 +546,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: active_rate {
-    group_label: "Rates"
+    group_label: " Rates"
     description: "Of all cases, how many are active?"
     type: number
     sql: 1.0 * ${active_running_total} / nullif((${confirmed_running_total}),0);;
@@ -521,7 +554,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: recovery_rate {
-    group_label: "Rates"
+    group_label: " Rates"
     description: "Of closed cases, how many recovered (vs. died)?"
     type: number
     sql: 1.0 * ${recovery_running_total} / NULLIF(${confirmed_running_total}, 0);;
@@ -529,7 +562,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: case_fatality_rate {
-    group_label: "Rates"
+    group_label: " Rates"
     description: "What percent of infections have resulted in death?"
     type: number
     sql: 1.0 * ${deaths_running_total}/NULLIF(${confirmed_running_total}, 0);;
@@ -549,6 +582,7 @@ view: jhu_sample_county_level_final {
   }
 
   measure: count {
+    hidden: yes
     type: count
     drill_fields: []
   }

@@ -21,6 +21,7 @@ view: country_region {
     label: "Region (World)"
     type: string
     sql: ${TABLE}.Region ;;
+    drill_fields: [jhu_sample_county_level_final.country_region]
   }
 
   measure: count {

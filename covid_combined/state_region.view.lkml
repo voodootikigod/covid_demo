@@ -20,6 +20,7 @@ view: state_region {
     hidden: yes
     type: string
     sql: ${TABLE}.State ;;
+    drill_fields: [jhu_sample_county_level_final.province_state]
   }
 
   dimension: state_code {
