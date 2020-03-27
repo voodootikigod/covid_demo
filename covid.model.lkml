@@ -15,6 +15,23 @@ include: "/us_covid_data/*.view.lkml"
 explore: jhu_sample_county_level_final {
   label: "COVID"
   view_label: " COVID19"
+
+  join: max_date_covid {
+    relationship: one_to_one
+    sql_on: 1 = 1  ;;
+  }
+
+  join: state_region {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.province_state} = ${state_region.state} ;;
+  }
+
+  join: country_region {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.country_region} = ${country_region.country} ;;
+  }
 }
 
 

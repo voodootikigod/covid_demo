@@ -199,7 +199,6 @@ view: covid_data {
     sql: ${TABLE}.recovered_new_cases ;;
   }
 
-
   dimension: x {
     hidden: yes
     type: string
