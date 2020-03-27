@@ -1,3 +1,4 @@
+
 # view: max_date {
 #   derived_table: {
 #     datagroup_trigger: covid_data
