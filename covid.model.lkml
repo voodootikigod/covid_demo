@@ -1,11 +1,58 @@
 connection: "lookerdata"
 
+include: "/covid_combined/*.view.lkml"
+include: "/census_data/*.view.lkml"
 include: "/intl_covid_data/*.view.lkml"
 include: "/us_covid_data/*.view.lkml"
 
-include: "/census_data/*.view.lkml"
 # include: "/**/view.lkml"                   # include all views in this project
 # include: "/dashboards/*.dashboard.lookml"   # include a LookML dashboard called my_dashboard
+
+############ New COVID ############
+## Note: this dataset has real data for JHU Daily Summary & COVID Tracking Project for March 26, 2020
+## All other data (March 1 - 25) is extrapolated from those values
+
+explore: jhu_sample_county_level_final {
+  label: "COVID"
+  view_label: " COVID19"
+}
+
+
+############ Census ############
+
+explore: acs_zip_codes_2017_5yr {
+  label: "ACS 2017 Data, By Zipcode"
+  join: us_zipcode_boundaries {
+    relationship: one_to_one
+    sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
+  }
+  join: zipcode_facts {
+    relationship: one_to_one
+    sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
+  }
+}
+
+explore: acs_puma_2018 {
+  group_label: "IN PROGRESS"
+  label: "DRAFT: Census Data (PUMA Level)"
+
+  join: zip_to_puma_v2 {
+    relationship: many_to_many
+    sql_on: ${acs_puma_2018.geo_id} = ${zip_to_puma_v2.puma} ;;
+  }
+
+#   join: us_zipcode_boundaries {
+#     relationship: one_to_one
+#     sql_on: ${zip_to_puma_v2.zcta5} = ${us_zipcode_boundaries.zip_code} ;;
+#   }
+#   join: zipcode_facts {
+#     relationship: one_to_one
+#     sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
+#   }
+
+}
+
+############ OLD INTL ############
 
 explore: covid_data {
 
@@ -46,6 +93,8 @@ explore: covid_data {
   }
 }
 
+############ OLD US ############
+
 explore: tests_by_state {
 
   join: max_date_us {
@@ -61,49 +110,16 @@ explore: tests_by_state {
 
 }
 
-############ Census Explores ############
-
-explore: acs_zip_codes_2017_5yr {
-  label: "ACS 2017 Data, By Zipcode"
-  join: us_zipcode_boundaries {
-    relationship: one_to_one
-    sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
-  }
-  join: zipcode_facts {
-    relationship: one_to_one
-    sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
-  }
-}
-
-explore: acs_puma_2018 {
-  group_label: "IN PROGRESS"
-  label: "DRAFT: Census Data (PUMA Level)"
-
-  join: zip_to_puma_v2 {
-    relationship: many_to_many
-    sql_on: ${acs_puma_2018.geo_id} = ${zip_to_puma_v2.puma} ;;
-  }
-
-#   join: us_zipcode_boundaries {
-#     relationship: one_to_one
-#     sql_on: ${zip_to_puma_v2.zcta5} = ${us_zipcode_boundaries.zip_code} ;;
-#   }
-#   join: zipcode_facts {
-#     relationship: one_to_one
-#     sql_on: ${zipcode_facts.us_zipcode_boundaries_zip_code}=${us_zipcode_boundaries.zip_code} ;;
-#   }
-
-}
-
-
-
-
-
 ############ Caching Logic ############
 
-persist_with: jhu_data
+persist_with: covid_data
 
 ### PDT Timeframes
+
+datagroup: covid_data {
+  max_cache_age: "12 hours"
+  sql_trigger: SELECT count(*) FROM  `lookerdata.covid19.jhu_sample_county_level_final` ;;
+}
 
 datagroup: jhu_data {
   max_cache_age: "12 hours"
