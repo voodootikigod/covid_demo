@@ -53,6 +53,16 @@ explore: tests_by_state {
   }
 }
 
+explore: italy {
+  from: italy_regions
+
+#   join: max_date_italy {
+#     fields: []
+#     relationship: one_to_one
+#     sql_on: 1 = 1  ;;
+#   }
+}
+
 
 ############ Caching Logic ############
 
@@ -78,4 +88,25 @@ datagroup: once_monthly {
 datagroup: once_yearly {
   max_cache_age: "9000 hours"
   sql_trigger: SELECT extract(year from current_date()) ;;
+}
+
+############ Map Layers #################
+
+map_layer: regioni_italiani {
+  format: "vector_tile_region"
+  url: "https://a.tiles.mapbox.com/v4/looker-maps.61hkfosh/{z}/{x}/{y}.mvt?access_token=@{mapbox_api_key}"
+  feature_key: "reg2011_g"
+  extents_json_url: "https://rawcdn.githack.com/dwmintz/looker_map_layers/6894c6448fb0721f93e2ce4ce9c30659e6a30c06/regioni_italiani.json"
+  min_zoom_level: 3
+  max_zoom_level: 11
+  property_key: "NOME_REG"
+}
+map_layer: province_italiane {
+  format: "vector_tile_region"
+  url: "https://a.tiles.mapbox.com/v4/looker-maps.4ocnvk26/{z}/{x}/{y}.mvt?access_token=@{mapbox_api_key}"
+  feature_key: "province_ditalia"
+  extents_json_url: "https://rawcdn.githack.com/dwmintz/looker_map_layers/6894c6448fb0721f93e2ce4ce9c30659e6a30c06/province_italiane.json"
+  min_zoom_level: 3
+  max_zoom_level: 12
+  property_key: "NOME_PRO"
 }

@@ -16,6 +16,24 @@ view: max_date_intl {
   }
 }
 
+# view: max_date_italy {
+#   derived_table: {
+#     sql_trigger_value: SELECT COUNT(*) FROM `lookerdata.covid19.italy_regions` ;;
+#     explore_source: italy {
+#       column: max_date {}
+#     }
+#   }
+#   dimension_group: max_date {
+#     hidden: yes
+#     type: time
+#     timeframes: [
+#       raw,
+#       date
+#     ]
+#     sql: cast(${TABLE}.max_date as date) ;;
+#   }
+# }
+
 view: cases_by_country_by_date {
   derived_table: {
     datagroup_trigger: once_daily
