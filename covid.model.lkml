@@ -22,7 +22,6 @@ explore: jhu_sample_county_level_final {
     sql_on:
           ${jhu_sample_county_level_final.province_state} = ${covid_tracking_project_sample_final.state}
       AND ${jhu_sample_county_level_final.measurement_raw} = ${covid_tracking_project_sample_final.measurement_raw}
-
     ;;
   }
 
@@ -46,6 +45,14 @@ explore: jhu_sample_county_level_final {
     view_label: " COVID19"
     relationship: many_to_one
     sql_on: ${jhu_sample_county_level_final.country_region} = ${country_region.country} ;;
+  }
+
+  join: prior_days_cases_covid {
+    view_label: " COVID19"
+    relationship: one_to_one
+    sql_on:
+        ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
+    AND ${jhu_sample_county_level_final.combined_key} = ${prior_days_cases_covid.combined_key};;
   }
 }
 
