@@ -5,7 +5,7 @@ view: max_date {
         SELECT min(max_date) as max_date
         FROM
         (
-          SELECT max(cast(date as date)) as max_date FROM `lookerdata.covid19.nyt_by_county_data`
+          SELECT max(cast(date as date)) as max_date FROM `lookerdata.covid19.nyt_covid_data`
           UNION ALL
           SELECT max(cast(date as date)) as max_date FROM `bigquery-public-data.covid19_jhu_csse.summary`
         ) a
@@ -32,7 +32,7 @@ view: pre_table {
         date as measurement_date,
         a.cases as confirmed,
         a.deaths
-      FROM `lookerdata.covid19.nyt_by_county_data` a
+      FROM `lookerdata.covid19.nyt_covid_data` a
       LEFT JOIN (SELECT fips, lat, long, count(*) as count FROM `lookerdata.covid19.jhu_sample_county_level_final` WHERE fips is not null GROUP BY 1,2,3) b
         ON a.fips = b.fips
       LEFT JOIN ${max_date.SQL_TABLE_NAME} c

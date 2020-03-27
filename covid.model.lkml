@@ -168,7 +168,7 @@ datagroup: covid_data {
   SELECT sum(count)
   FROM
   (
-    SELECT count(*) as count FROM `lookerdata.covid19.nyt_by_county_data`
+    SELECT count(*) as count FROM `lookerdata.covid19.nyt_covid_data`
     UNION ALL
     SELECT count(*) as count FROM `bigquery-public-data.covid19_jhu_csse.summary`
   )
