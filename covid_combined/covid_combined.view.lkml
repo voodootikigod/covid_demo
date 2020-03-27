@@ -1,7 +1,70 @@
-view: jhu_sample_county_level_final {
-  # sql_table_name: `lookerdata.covid19.jhu_sample_county_level_final` ;;
+view: max_date {
+  derived_table: {
+    datagroup_trigger: covid_data
+    sql:
+        SELECT min(max_date) as max_date
+        FROM
+        (
+          SELECT max(cast(date as date)) as max_date FROM `lookerdata.covid19.nyt_by_county_data`
+          UNION ALL
+          SELECT max(cast(date as date)) as max_date FROM `bigquery-public-data.covid19_jhu_csse.summary`
+        ) a
+      ;;
+  }
+}
 
-  # Note: if you take confirmed cases 17 days ago - deaths today, you can approxiamate recoveries; https://github.com/CSSEGISandData/COVID-19/issues/1250#issuecomment-604485405
+view: pre_table {
+  derived_table: {
+    datagroup_trigger: covid_data
+    sql:
+      SELECT
+        a.fips,
+        a.county,
+        a.state as province_state,
+        'US' as country_region,
+        b.lat,
+        b.long,
+        case
+          when a.state is null then 'US'
+          when a.state is not null AND a.county is null then concat(a.state,', US')
+          when a.county is not null then concat(a.county, ', ', a.state, ', US')
+        end as combined_key,
+        date as measurement_date,
+        a.cases as confirmed,
+        a.deaths
+      FROM `lookerdata.covid19.nyt_by_county_data` a
+      LEFT JOIN (SELECT fips, lat, long, count(*) as count FROM `lookerdata.covid19.jhu_sample_county_level_final` WHERE fips is not null GROUP BY 1,2,3) b
+        ON a.fips = b.fips
+      LEFT JOIN ${max_date.SQL_TABLE_NAME} c
+        ON 1 = 1
+      WHERE cast(a.date as date) <= cast(c.max_date as date)
+
+      UNION ALL
+
+      SELECT
+        NULL as fips,
+        NULL as county,
+        province_state,
+        country_region,
+        latitude,
+        longitude,
+        case
+          when province_state is null then country_region
+          when province_state is not null AND country_region is null then concat(province_state,', ',country_region)
+        end as combined_key,
+        cast(date as date) as measurement_date,
+        confirmed,
+        deaths
+      FROM `bigquery-public-data.covid19_jhu_csse.summary` a
+      LEFT JOIN ${max_date.SQL_TABLE_NAME} c
+        ON 1 = 1
+      WHERE country_region <> 'US'
+      AND cast(a.date as date) <= cast(c.max_date as date)
+    ;;
+  }
+}
+
+view: jhu_sample_county_level_final {
 
   derived_table: {
     datagroup_trigger: covid_data
@@ -21,26 +84,10 @@ view: jhu_sample_county_level_final {
         confirmed - coalesce(LAG(confirmed, 1) OVER (PARTITION BY combined_key ORDER BY measurement_date ASC),0) as confirmed_new_cases,
 
         deaths as deaths_cumulative,
-        deaths - coalesce(LAG(deaths, 1) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) as deaths_new_cases,
+        deaths - coalesce(LAG(deaths, 1) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) as deaths_new_cases
 
-        case
-          when (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths) < 0 then 0
-          else (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths)
-        end
-          as recovered_cumulative,
-        case
-          when
-              (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths) -
-              (coalesce(LAG(confirmed, 18) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - coalesce(LAG(deaths, 1) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0))
-            < 0 then 0
-          else
-              (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths) -
-              (coalesce(LAG(confirmed, 18) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - coalesce(LAG(deaths, 1) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0))
-          end
-            as recovered_new_cases
+    FROM ${pre_table.SQL_TABLE_NAME} ;;
 
-
-    FROM `lookerdata.covid19.jhu_sample_county_level_final` ;;
   }
 
 ####################
@@ -174,18 +221,6 @@ view: jhu_sample_county_level_final {
     sql: ${TABLE}.deaths_new_cases ;;
   }
 
-  dimension: recovered_cumulative {
-    hidden: yes
-    type: number
-    sql: ${TABLE}.recovered_cumulative ;;
-  }
-
-  dimension: recovered_new_cases {
-    hidden: yes
-    type: number
-    sql: ${TABLE}.recovered_new_cases ;;
-  }
-
   dimension: x {
     hidden: yes
     type: string
@@ -196,30 +231,6 @@ view: jhu_sample_county_level_final {
 ####################
 #### Derived Dimensions ####
 ####################
-
-  dimension: active_cumulative {
-    hidden: yes
-    type: number
-    sql: ${confirmed_cumulative} - ${recovered_cumulative} - ${deaths_cumulative} ;;
-  }
-
-  dimension: active_new_cases {
-    hidden: yes
-    type: number
-    sql: ${confirmed_new_cases} - ${recovered_new_cases} - ${deaths_new_cases} ;;
-  }
-
-  dimension: closed_cumulative {
-    hidden: yes
-    type: number
-    sql: ${recovered_cumulative} + ${deaths_cumulative} ;;
-  }
-
-  dimension: closed_new_cases {
-    hidden: yes
-    type: number
-    sql: ${recovered_new_cases} + ${deaths_new_cases} ;;
-  }
 
   dimension: is_max_date {
     hidden: yes
@@ -347,39 +358,6 @@ view: jhu_sample_county_level_final {
     drill_fields: [drill*]
   }
 
-  measure: recoveries {
-    group_label: " Dynamic"
-    label: "Recoveries"
-    type: number
-    sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${recovery_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${recovery_running_total}
-        {% endif %} ;;
-    drill_fields: [drill*]
-  }
-
-  measure: active_cases {
-    group_label: " Dynamic"
-    label: "Active Cases"
-    type: number
-    sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${active_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${active_running_total}
-        {% endif %} ;;
-    drill_fields: [drill*]
-  }
-
-  measure: closed_cases {
-    group_label: " Dynamic"
-    label: "Closed Cases"
-    type: number
-    sql:
-        {% if new_vs_running_total._parameter_value == 'new_cases' %} ${closed_new}
-        {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${closed_running_total}
-        {% endif %} ;;
-    drill_fields: [drill*]
-  }
-
   measure: confirmed_new {
     group_label: " New Cases"
     label: "Confirmed Cases (New)"
@@ -446,121 +424,6 @@ view: jhu_sample_county_level_final {
           {% endif %} ;;
   }
 
-  measure: recovery_new {
-    group_label: " New Cases"
-    label: "Recoveries (New)"
-    type: sum
-    sql: ${recovered_new_cases} ;;
-  }
-
-  measure: recovered_option_1 {
-    hidden: yes
-    type: sum
-    sql: ${recovered_cumulative} ;;
-  }
-
-  measure: recovered_option_2 {
-    hidden: yes
-    type: sum
-    sql: ${recovered_cumulative} ;;
-    filters: {
-      field: is_max_date
-      value: "Yes"
-    }
-  }
-
-  measure: recovery_running_total {
-    group_label: " Running Total"
-    label: "Recoveries (Running Total)"
-    type: number
-    sql:
-          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${recovered_option_1}
-          {% else %}  ${recovered_option_2}
-          {% endif %} ;;
-  }
-
-  measure: active_new {
-    group_label: " New Cases"
-    label: "Active Cases (New)"
-    type: sum
-    sql: ${active_new_cases} ;;
-  }
-
-  measure: active_option_1 {
-    hidden: yes
-    type: sum
-    sql: ${active_cumulative} ;;
-  }
-
-  measure: active_option_2 {
-    hidden: yes
-    type: sum
-    sql: ${active_cumulative} ;;
-    filters: {
-      field: is_max_date
-      value: "Yes"
-    }
-  }
-
-  measure: active_running_total {
-    group_label: " Running Total"
-    label: "Active Cases (Running Total)"
-    type: number
-    sql:
-          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${active_option_1}
-          {% else %}  ${active_option_2}
-          {% endif %} ;;
-  }
-
-  measure: closed_new {
-    group_label: " New Cases"
-    label: "Closed Cases (New)"
-    type: sum
-    sql: ${closed_new_cases} ;;
-  }
-
-  measure: closed_option_1 {
-    hidden: yes
-    type: sum
-    sql: ${closed_cumulative} ;;
-  }
-
-  measure: closed_option_2 {
-    hidden: yes
-    type: sum
-    sql: ${closed_cumulative} ;;
-    filters: {
-      field: is_max_date
-      value: "Yes"
-    }
-  }
-
-  measure: closed_running_total {
-    group_label: " Running Total"
-    label: "Closed Cases (Running Total)"
-    type: number
-    sql:
-          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${closed_option_1}
-          {% else %}  ${closed_option_2}
-          {% endif %} ;;
-  }
-
-  measure: active_rate {
-    group_label: " Rates"
-    description: "Of all cases, how many are active?"
-    type: number
-    sql: 1.0 * ${active_running_total} / nullif((${confirmed_running_total}),0);;
-    value_format_name: percent_1
-  }
-
-  measure: recovery_rate {
-    group_label: " Rates"
-    description: "Of closed cases, how many recovered (vs. died)?"
-    type: number
-    sql: 1.0 * ${recovery_running_total} / NULLIF(${confirmed_running_total}, 0);;
-    value_format_name: percent_1
-  }
-
   measure: case_fatality_rate {
     group_label: " Rates"
     description: "What percent of infections have resulted in death?"
@@ -592,8 +455,215 @@ view: jhu_sample_county_level_final {
       country_region,
       x,
       confirmed_cases,
-      active_rate,
       deaths
     ]
   }
 }
+
+
+#         case
+#           when (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths) < 0 then 0
+#           else (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths)
+#         end
+#           as recovered_cumulative,
+#         case
+#           when
+#               (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths) -
+#               (coalesce(LAG(confirmed, 18) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - coalesce(LAG(deaths, 1) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0))
+#             < 0 then 0
+#           else
+#               (coalesce(lag(confirmed,17) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - deaths) -
+#               (coalesce(LAG(confirmed, 18) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) - coalesce(LAG(deaths, 1) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0))
+#           end
+#             as recovered_new_cases
+
+
+# Note: if you take confirmed cases 17 days ago - deaths today, you can approxiamate recoveries; https://github.com/CSSEGISandData/COVID-19/issues/1250#issuecomment-604485405
+
+# sql_table_name: `lookerdata.covid19.jhu_sample_county_level_final` ;;
+
+
+#   dimension: recovered_cumulative {
+#     hidden: yes
+#     type: number
+#     sql: ${TABLE}.recovered_cumulative ;;
+#   }
+#
+#   dimension: recovered_new_cases {
+#     hidden: yes
+#     type: number
+#     sql: ${TABLE}.recovered_new_cases ;;
+#   }
+
+
+#   dimension: active_cumulative {
+#     hidden: yes
+#     type: number
+#     sql: ${confirmed_cumulative} - ${recovered_cumulative} - ${deaths_cumulative} ;;
+#   }
+#
+#   dimension: active_new_cases {
+#     hidden: yes
+#     type: number
+#     sql: ${confirmed_new_cases} - ${recovered_new_cases} - ${deaths_new_cases} ;;
+#   }
+#
+#   dimension: closed_cumulative {
+#     hidden: yes
+#     type: number
+#     sql: ${recovered_cumulative} + ${deaths_cumulative} ;;
+#   }
+#
+#   dimension: closed_new_cases {
+#     hidden: yes
+#     type: number
+#     sql: ${recovered_new_cases} + ${deaths_new_cases} ;;
+#   }
+
+# measure: recoveries {
+#   group_label: " Dynamic"
+#   label: "Recoveries"
+#   type: number
+#   sql:
+#         {% if new_vs_running_total._parameter_value == 'new_cases' %} ${recovery_new}
+#         {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${recovery_running_total}
+#         {% endif %} ;;
+#   drill_fields: [drill*]
+# }
+#
+# measure: active_cases {
+#   group_label: " Dynamic"
+#   label: "Active Cases"
+#   type: number
+#   sql:
+#         {% if new_vs_running_total._parameter_value == 'new_cases' %} ${active_new}
+#         {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${active_running_total}
+#         {% endif %} ;;
+#   drill_fields: [drill*]
+# }
+#
+# measure: closed_cases {
+#   group_label: " Dynamic"
+#   label: "Closed Cases"
+#   type: number
+#   sql:
+#         {% if new_vs_running_total._parameter_value == 'new_cases' %} ${closed_new}
+#         {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${closed_running_total}
+#         {% endif %} ;;
+#   drill_fields: [drill*]
+# }
+
+# measure: recovery_new {
+#   group_label: " New Cases"
+#   label: "Recoveries (New)"
+#   type: sum
+#   sql: ${recovered_new_cases} ;;
+# }
+#
+# measure: recovered_option_1 {
+#   hidden: yes
+#   type: sum
+#   sql: ${recovered_cumulative} ;;
+# }
+#
+# measure: recovered_option_2 {
+#   hidden: yes
+#   type: sum
+#   sql: ${recovered_cumulative} ;;
+#   filters: {
+#     field: is_max_date
+#     value: "Yes"
+#   }
+# }
+#
+# measure: recovery_running_total {
+#   group_label: " Running Total"
+#   label: "Recoveries (Running Total)"
+#   type: number
+#   sql:
+#           {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${recovered_option_1}
+#           {% else %}  ${recovered_option_2}
+#           {% endif %} ;;
+# }
+#
+# measure: active_new {
+#   group_label: " New Cases"
+#   label: "Active Cases (New)"
+#   type: sum
+#   sql: ${active_new_cases} ;;
+# }
+#
+# measure: active_option_1 {
+#   hidden: yes
+#   type: sum
+#   sql: ${active_cumulative} ;;
+# }
+#
+# measure: active_option_2 {
+#   hidden: yes
+#   type: sum
+#   sql: ${active_cumulative} ;;
+#   filters: {
+#     field: is_max_date
+#     value: "Yes"
+#   }
+# }
+#
+# measure: active_running_total {
+#   group_label: " Running Total"
+#   label: "Active Cases (Running Total)"
+#   type: number
+#   sql:
+#           {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${active_option_1}
+#           {% else %}  ${active_option_2}
+#           {% endif %} ;;
+# }
+#
+# measure: closed_new {
+#   group_label: " New Cases"
+#   label: "Closed Cases (New)"
+#   type: sum
+#   sql: ${closed_new_cases} ;;
+# }
+#
+# measure: closed_option_1 {
+#   hidden: yes
+#   type: sum
+#   sql: ${closed_cumulative} ;;
+# }
+#
+# measure: closed_option_2 {
+#   hidden: yes
+#   type: sum
+#   sql: ${closed_cumulative} ;;
+#   filters: {
+#     field: is_max_date
+#     value: "Yes"
+#   }
+# }
+#
+# measure: closed_running_total {
+#   group_label: " Running Total"
+#   label: "Closed Cases (Running Total)"
+#   type: number
+#   sql:
+#           {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${closed_option_1}
+#           {% else %}  ${closed_option_2}
+#           {% endif %} ;;
+# }
+
+# measure: active_rate {
+#   group_label: " Rates"
+#   description: "Of all cases, how many are active?"
+#   type: number
+#   sql: 1.0 * ${active_running_total} / nullif((${confirmed_running_total}),0);;
+#   value_format_name: percent_1
+# }
+#
+# measure: recovery_rate {
+#   group_label: " Rates"
+#   description: "Of closed cases, how many recovered (vs. died)?"
+#   type: number
+#   sql: 1.0 * ${recovery_running_total} / NULLIF(${confirmed_running_total}, 0);;
+#   value_format_name: percent_1
+# }

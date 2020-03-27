@@ -164,7 +164,15 @@ persist_with: covid_data
 
 datagroup: covid_data {
   max_cache_age: "12 hours"
-  sql_trigger: SELECT count(*) FROM  `lookerdata.covid19.jhu_sample_county_level_final` ;;
+  sql_trigger:
+  SELECT sum(count)
+  FROM
+  (
+    SELECT count(*) as count FROM `lookerdata.covid19.nyt_by_county_data`
+    UNION ALL
+    SELECT count(*) as count FROM `bigquery-public-data.covid19_jhu_csse.summary`
+  )
+  ;;
 }
 
 datagroup: jhu_data {
