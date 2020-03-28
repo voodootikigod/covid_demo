@@ -130,7 +130,8 @@ view: jhu_sample_county_level_final {
   dimension: fips_as_string {
     hidden: yes
     type: string
-    sql: cast(${fips} as string) ;;
+    sql: CASE WHEN LENGTH(cast(${fips} as string)) = 4 THEN CONCAT('0',${fips})
+    ELSE cast(${fips} as string) END;;
   }
 
   dimension: province_state {
