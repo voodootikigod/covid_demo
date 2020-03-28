@@ -1,70 +1,3 @@
-
-# view: max_date {
-#   derived_table: {
-#     datagroup_trigger: covid_data
-#     sql:
-#         SELECT min(max_date) as max_date
-#         FROM
-#         (
-#           SELECT max(cast(date as date)) as max_date FROM `lookerdata.covid19.nyt_covid_data`
-#           UNION ALL
-#           SELECT max(cast(date as date)) as max_date FROM `bigquery-public-data.covid19_jhu_csse.summary`
-#         ) a
-#       ;;
-#   }
-# }
-
-# view: pre_table {
-#   derived_table: {
-#     datagroup_trigger: covid_data
-#     sql:
-#       SELECT
-#         a.fips,
-#         a.county,
-#         a.state as province_state,
-#         'US' as country_region,
-#         b.lat,
-#         b.long,
-#         case
-#           when a.state is null then 'US'
-#           when a.state is not null AND a.county is null then concat(a.state,', US')
-#           when a.county is not null then concat(a.county, ', ', a.state, ', US')
-#         end as combined_key,
-#         date as measurement_date,
-#         a.cases as confirmed,
-#         a.deaths
-#       FROM `lookerdata.covid19.nyt_by_county_data` a
-#       LEFT JOIN (SELECT fips, lat, long, count(*) as count FROM `lookerdata.covid19.jhu_sample_county_level_final` WHERE fips is not null GROUP BY 1,2,3) b
-#         ON a.fips = b.fips
-#       LEFT JOIN ${max_date.SQL_TABLE_NAME} c
-#         ON 1 = 1
-#       WHERE cast(a.date as date) <= cast(c.max_date as date)
-#
-#       UNION ALL
-#
-#       SELECT
-#         NULL as fips,
-#         NULL as county,
-#         province_state,
-#         country_region,
-#         latitude,
-#         longitude,
-#         case
-#           when province_state is null then country_region
-#           when province_state is not null AND country_region is null then concat(province_state,', ',country_region)
-#         end as combined_key,
-#         cast(date as date) as measurement_date,
-#         confirmed,
-#         deaths
-#       FROM `bigquery-public-data.covid19_jhu_csse.summary` a
-#       LEFT JOIN ${max_date.SQL_TABLE_NAME} c
-#         ON 1 = 1
-#       WHERE country_region <> 'US'
-#       AND cast(a.date as date) <= cast(c.max_date as date)
-#     ;;
-#   }
-# }
-
 view: jhu_sample_county_level_final {
 
   derived_table: {
@@ -99,7 +32,13 @@ view: jhu_sample_county_level_final {
     primary_key: yes
     hidden: yes
     type: string
-    sql: concat(${combined_key},${measurement_raw}) ;;
+    sql: concat(${pre_pk},${measurement_raw}) ;;
+  }
+
+  dimension: pre_pk {
+    hidden: yes
+    type: string
+    sql: concat(coalesce(${county},''), coalesce(${province_state},''), coalesce(${country_region},'')) ;;
   }
 
   dimension: combined_key {
@@ -366,6 +305,15 @@ view: jhu_sample_county_level_final {
     sql: ${confirmed_new_cases} ;;
   }
 
+  measure: confirmed_new_per_million {
+    group_label: " New Cases"
+    label: "Confirmed Cases per Million (New)"
+    type: number
+    sql: 1000000*${confirmed_new} / nullif(${population_by_county_state_country.sum_population},0) ;;
+    value_format_name: decimal_0
+    drill_fields: [drill*]
+  }
+
   measure: confirmed_option_1 {
     hidden: yes
     type: sum
@@ -392,11 +340,29 @@ view: jhu_sample_county_level_final {
           {% endif %} ;;
   }
 
+  measure: confirmed_running_total_per_million {
+    group_label: " Running Total"
+    label: "Confirmed Cases per Million (Running Total)"
+    type: number
+    sql: 1000000*${confirmed_running_total} / nullif(${population_by_county_state_country.sum_population},0) ;;
+    value_format_name: decimal_0
+    drill_fields: [drill*]
+  }
+
   measure: deaths_new {
     group_label: " New Cases"
     label: "Deaths (New)"
     type: sum
     sql: ${deaths_new_cases} ;;
+  }
+
+  measure: deaths_new_per_million {
+    group_label: " New Cases"
+    label: "Deaths per Million (New)"
+    type: number
+    sql: 1000000*${deaths_new} / nullif(${population_by_county_state_country.sum_population},0) ;;
+    value_format_name: decimal_0
+    drill_fields: [drill*]
   }
 
   measure: deaths_option_1 {
@@ -423,6 +389,15 @@ view: jhu_sample_county_level_final {
           {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${deaths_option_1}
           {% else %}  ${deaths_option_2}
           {% endif %} ;;
+  }
+
+  measure: deaths_running_total_per_million {
+    group_label: " Running Total"
+    label: "Deaths per Million (Running Total)"
+    type: number
+    sql: 1000000*${deaths_running_total} / nullif(${population_by_county_state_country.sum_population},0) ;;
+    value_format_name: decimal_0
+    drill_fields: [drill*]
   }
 
   measure: case_fatality_rate {
@@ -667,4 +642,71 @@ view: jhu_sample_county_level_final {
 #   type: number
 #   sql: 1.0 * ${recovery_running_total} / NULLIF(${confirmed_running_total}, 0);;
 #   value_format_name: percent_1
+# }
+
+
+# view: max_date {
+#   derived_table: {
+#     datagroup_trigger: covid_data
+#     sql:
+#         SELECT min(max_date) as max_date
+#         FROM
+#         (
+#           SELECT max(cast(date as date)) as max_date FROM `lookerdata.covid19.nyt_covid_data`
+#           UNION ALL
+#           SELECT max(cast(date as date)) as max_date FROM `bigquery-public-data.covid19_jhu_csse.summary`
+#         ) a
+#       ;;
+#   }
+# }
+
+# view: pre_table {
+#   derived_table: {
+#     datagroup_trigger: covid_data
+#     sql:
+#       SELECT
+#         a.fips,
+#         a.county,
+#         a.state as province_state,
+#         'US' as country_region,
+#         b.lat,
+#         b.long,
+#         case
+#           when a.state is null then 'US'
+#           when a.state is not null AND a.county is null then concat(a.state,', US')
+#           when a.county is not null then concat(a.county, ', ', a.state, ', US')
+#         end as combined_key,
+#         date as measurement_date,
+#         a.cases as confirmed,
+#         a.deaths
+#       FROM `lookerdata.covid19.nyt_by_county_data` a
+#       LEFT JOIN (SELECT fips, lat, long, count(*) as count FROM `lookerdata.covid19.jhu_sample_county_level_final` WHERE fips is not null GROUP BY 1,2,3) b
+#         ON a.fips = b.fips
+#       LEFT JOIN ${max_date.SQL_TABLE_NAME} c
+#         ON 1 = 1
+#       WHERE cast(a.date as date) <= cast(c.max_date as date)
+#
+#       UNION ALL
+#
+#       SELECT
+#         NULL as fips,
+#         NULL as county,
+#         province_state,
+#         country_region,
+#         latitude,
+#         longitude,
+#         case
+#           when province_state is null then country_region
+#           when province_state is not null AND country_region is null then concat(province_state,', ',country_region)
+#         end as combined_key,
+#         cast(date as date) as measurement_date,
+#         confirmed,
+#         deaths
+#       FROM `bigquery-public-data.covid19_jhu_csse.summary` a
+#       LEFT JOIN ${max_date.SQL_TABLE_NAME} c
+#         ON 1 = 1
+#       WHERE country_region <> 'US'
+#       AND cast(a.date as date) <= cast(c.max_date as date)
+#     ;;
+#   }
 # }

@@ -35,6 +35,12 @@ explore: jhu_sample_county_level_final {
     sql_on: 1 = 1  ;;
   }
 
+  join: population_by_county_state_country {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.pre_pk} = ${population_by_county_state_country.pre_pk} ;;
+  }
+
   join: state_region {
     view_label: " COVID19"
     relationship: many_to_one
