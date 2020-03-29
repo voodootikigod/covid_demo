@@ -40,6 +40,13 @@ explore: jhu_sample_county_level_final {
     sql_on: ${jhu_sample_county_level_final.fips} = ${hospital_bed_summary_final.fips} ;;
   }
 
+## State Policy Reactions ##
+
+  join: policies_by_state {
+    view_label: "State Policy"
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.province_state} = ${policies_by_state.state} ;;
+  }
 
 ## Max Date for Running Total Logic ##
 
