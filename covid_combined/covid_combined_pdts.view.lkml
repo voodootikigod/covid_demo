@@ -972,6 +972,141 @@ view: kpis_by_entity_by_date {
   }
 }
 
+####################
+### Animation
+####################
+
+# view: animation {
+#   derived_table: {
+#     sql:
+#       SELECT puma as puma, confirmed_running_total_per_million, '2 Weeks Ago' as timeframe FROM ${by_puma_2_weeks_ago.SQL_TABLE_NAME} UNION ALL
+#       SELECT puma as puma, confirmed_running_total_per_million, '1 Week Ago' as timeframe FROM ${by_puma_last_week.SQL_TABLE_NAME} UNION ALL
+#       SELECT puma as puma, confirmed_running_total_per_million, 'Today' as timeframe FROM ${by_puma_today.SQL_TABLE_NAME} UNION ALL
+#       SELECT puma as puma, confirmed_running_total_per_million, 'Forecasted' as timeframe FROM ${by_puma_next_week.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, min, '2 Weeks Ago' as timeframe FROM ${max_values.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, min, '1 Week Ago' as timeframe FROM ${max_values.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, min, 'Today' as timeframe FROM ${max_values.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, min, 'Forecasted' as timeframe FROM ${max_values.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, max, '2 Weeks Ago' as timeframe FROM ${max_values.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, max, '1 Week Ago' as timeframe FROM ${max_values.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, max, 'Today' as timeframe FROM ${max_values.SQL_TABLE_NAME} UNION ALL
+#       SELECT '999999' as puma, max, 'Forecasted' as timeframe FROM ${max_values.SQL_TABLE_NAME}
+#     ;;
+#   }
+#   dimension: pk {
+#     primary_key: yes
+#     hidden: yes
+#     type: string
+#     sql: concat(${puma},${timeframe}) ;;
+#   }
+#   dimension: puma {
+#     type: number
+#   }
+#   dimension: timeframe {
+#     type: string
+#   }
+#   dimension: confirmed_running_total_per_million {
+#     hidden: yes
+#     type: string
+#   }
+#   measure: sum_confirmed_running_total_per_million {
+#     type: sum
+#     sql: ${confirmed_running_total_per_million} ;;
+#   }
+# }
+#
+# view: max_values {
+#   derived_table: {
+#     sql:
+#   SELECT min(min) as min, max(max) as max
+#   FROM
+#   (
+#     SELECT min(confirmed_running_total_per_million) as min , max(confirmed_running_total_per_million) as max FROM ${by_puma_2_weeks_ago.SQL_TABLE_NAME} UNION ALL
+#     SELECT min(confirmed_running_total_per_million) as min , max(confirmed_running_total_per_million) as max FROM ${by_puma_last_week.SQL_TABLE_NAME} UNION ALL
+#     SELECT min(confirmed_running_total_per_million) as min , max(confirmed_running_total_per_million) as max FROM ${by_puma_today.SQL_TABLE_NAME} UNION ALL
+#     SELECT min(confirmed_running_total_per_million) as min , max(confirmed_running_total_per_million) as max FROM ${by_puma_next_week.SQL_TABLE_NAME}
+#   ) a
+#     ;;
+#   }
+#   # max(confirmed_new_per_million) as max_confirmed_new_per_million,
+#   # max(seven_day_average_change_rate_confirmed_cases_new_per_million) as max_seven_day_average_change_rate_confirmed_cases_new_per_million
+# }
+#
+# view: by_puma_2_weeks_ago {
+#   derived_table: {
+#     explore_source: jhu_sample_county_level_final {
+#       bind_all_filters: yes
+#       column: puma { field: zip_to_puma_v2.puma }
+#       column: confirmed_running_total_per_million {}
+#       # column: confirmed_new_per_million {}
+#       # column: seven_day_average_change_rate_confirmed_cases_new_per_million { field: prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_new_per_million }
+#       filters: {
+#         field: jhu_sample_county_level_final.days_since_max_date
+#         value: "-14"
+#       }
+#     }
+#   }
+# }
+#
+# view: by_puma_last_week {
+#   derived_table: {
+#     explore_source: jhu_sample_county_level_final {
+#       bind_all_filters: yes
+#       column: puma { field: zip_to_puma_v2.puma }
+#       column: confirmed_running_total_per_million {}
+#       # column: confirmed_new_per_million {}
+#       # column: seven_day_average_change_rate_confirmed_cases_new_per_million { field: prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_new_per_million }
+#       filters: {
+#         field: jhu_sample_county_level_final.days_since_max_date
+#         value: "-7"
+#       }
+#     }
+#   }
+# }
+#
+# view: by_puma_today {
+#   derived_table: {
+#     explore_source: jhu_sample_county_level_final {
+#       bind_all_filters: yes
+#       column: puma { field: zip_to_puma_v2.puma }
+#       column: confirmed_running_total_per_million {}
+#       # column: confirmed_new_per_million {}
+#       # column: seven_day_average_change_rate_confirmed_cases_new_per_million { field: prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_new_per_million }
+#       filters: {
+#         field: jhu_sample_county_level_final.days_since_max_date
+#         value: "0"
+#       }
+#     }
+#   }
+# }
+#
+# view: by_puma_next_week {
+#   derived_table: {
+#     explore_source: jhu_sample_county_level_final {
+#       bind_all_filters: yes
+#       column: puma { field: zip_to_puma_v2.puma }
+#       column: confirmed_running_total_per_million {}
+#       # column: confirmed_new_per_million {}
+#       # column: seven_day_average_change_rate_confirmed_cases_new_per_million { field: prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_new_per_million }
+#       filters: {
+#         field: jhu_sample_county_level_final.days_since_max_date
+#         value: "7"
+#       }
+#       filters: {
+#         field: jhu_sample_county_level_final.allow_forecasted_values
+#         value: "yes"
+#       }
+#     }
+#   }
+# }
+
+
+
+
+
+
+
+
 
 
 #   measure: start_confirmed_cases {

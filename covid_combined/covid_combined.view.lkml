@@ -5,6 +5,7 @@ view: jhu_sample_county_level_final {
     sql:
 
     SELECT
+        'Real Data' as real_vs_forecasted,
         fips,
         county,
         province_state,
@@ -20,8 +21,31 @@ view: jhu_sample_county_level_final {
         deaths as deaths_cumulative,
         deaths - coalesce(LAG(deaths, 1) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,''))  ORDER BY measurement_date ASC),0) as deaths_new_cases
 
-    FROM `lookerdata.covid19.combined_covid_data` ;;
+    FROM `lookerdata.covid19.combined_covid_data`
 
+    UNION ALL
+
+        SELECT
+        'Forecasted' as real_vs_forecasted,
+        fips,
+        county,
+        province_state,
+        country_region,
+        lat,
+        long,
+        combined_key,
+        cast(forecast_date as date) as measurement_date,
+
+        round(confirmed_running_total + SUM(forecasted_new_confirmed_cases) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,'')) ORDER BY forecast_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW),0) as confirmed_cumulative,
+        round(forecasted_new_confirmed_cases,0) as confirmed_new_cases,
+
+        round(deaths_running_total + SUM(forecasted_new_deaths) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,'')) ORDER BY forecast_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW),0) as deaths_cumulative,
+        round(forecasted_new_deaths,0) as deaths_new_cases
+
+    FROM `lookerdata.covid19.forecasting_results_temp_table`
+    WHERE cast(forecast_date as date) > (SELECT max(measurement_date) FROM `lookerdata.covid19.combined_covid_data`)
+
+    ;;
   }
 
 ####################
@@ -33,6 +57,11 @@ view: jhu_sample_county_level_final {
     hidden: yes
     type: string
     sql: concat(${pre_pk},${measurement_raw}) ;;
+  }
+
+  dimension: real_vs_forecasted {
+    type: string
+    sql: ${TABLE}.real_vs_forecasted ;;
   }
 
   dimension: pre_pk {
@@ -193,6 +222,21 @@ view: jhu_sample_county_level_final {
 #### Derived Dimensions ####
 ####################
 
+  parameter: allow_forecasted_values {
+    type: unquoted
+    default_value: "no"
+    allowed_value: {
+      label: "No"
+      value: "no"
+    }
+    allowed_value: {
+      label: "Yes"
+      value: "yes"
+    }
+  }
+
+
+
 #   parameter: location_selector {
 #     type: unquoted
 #     default_value: "state"
@@ -225,6 +269,11 @@ view: jhu_sample_county_level_final {
     # hidden: yes
     type: yesno
     sql: ${measurement_raw} = ${max_date_covid.max_date_raw} ;;
+  }
+
+  dimension: days_since_max_date {
+    type:  number
+    sql: date_diff(${measurement_raw},${max_date_covid.max_date_raw},day) ;;
   }
 
   parameter: minimum_number_cases {

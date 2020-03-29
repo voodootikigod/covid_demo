@@ -9,13 +9,17 @@ include: "/us_covid_data/*.view.lkml"
 # include: "/dashboards/*.dashboard.lookml"   # include a LookML dashboard called my_dashboard
 
 ############ New COVID ############
-## Note: this dataset has real data for JHU Daily Summary & COVID Tracking Project for March 26, 2020
-## All other data (March 1 - 25) is extrapolated from those values
 
 explore: jhu_sample_county_level_final {
   group_label: "*COVID 19"
   label: "COVID - Main"
   view_label: " COVID19"
+
+  sql_always_where:
+        {% if jhu_sample_county_level_final.allow_forecasted_values._parameter_value == 'no' %} ${real_vs_forecasted} = 'Real Data'
+        {% elsif jhu_sample_county_level_final.allow_forecasted_values._parameter_value == 'yes' %} 1 = 1
+        {% endif %}
+  ;;
 
 ## Testing Data by State (US Only) ##
 
@@ -100,7 +104,18 @@ explore: jhu_sample_county_level_final {
     relationship: one_to_one
     sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
   }
+
+## Animation ##
+
+#   join: animation {
+#     relationship: many_to_many
+#     sql_on: ${zip_to_puma_v2.puma} = ${animation.puma} ;;
+#   }
+
+
 }
+
+############ Compare Geographies ############
 
 explore: kpis_by_entity_by_date {
   group_label: "*COVID 19"
@@ -113,14 +128,15 @@ explore: kpis_by_entity_by_date {
   ;;
 }
 
+############ Forecasting ############
+
 explore: covid_forecasting {
-  group_label: "*COVID 19"
-  label: "COVID Apps - Forecasting"
+  hidden: yes
 }
 
-explore: covid_forecasting_results {}
-
-
+explore: covid_forecasting_results {
+  hidden: yes
+}
 
 ############ Census ############
 
