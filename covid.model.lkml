@@ -218,6 +218,12 @@ explore: covid_data {
 
 explore: italy {
   from: italy_regions
+
+  join: italy_province {
+    relationship: one_to_many
+    view_label: "Italy"
+    sql_on: ${italy.pk} = CONCAT(${italy_province.denominazione_regione}, ${italy_province.codice_regione}, ${italy_province.reporting_date});;
+  }
 }
 
 

@@ -6,8 +6,6 @@ view: italy_regions {
       date(ir.data) as data
       , ir.denominazione_regione
       , ir.codice_regione
-      , "In fase di definizione/aggiornamento" as denominazione_provincia
-      , '' as sigla_provincia
       , ir.ricoverati_con_sintomi
       , ricoverati_con_sintomi - coalesce(LAG(ricoverati_con_sintomi, 1) OVER (PARTITION BY ir.denominazione_regione, ir.codice_regione ORDER BY ir.data ASC),0) as ricoverati_con_sintomi_cambio
       , ir.terapia_intensiva
@@ -22,46 +20,15 @@ view: italy_regions {
       , dimessi_guariti - coalesce(LAG(dimessi_guariti, 1) OVER (PARTITION BY ir.denominazione_regione, ir.codice_regione ORDER BY ir.data ASC),0) as dimessi_guariti_nuovi
       , ir.deceduti
       , deceduti - coalesce(LAG(deceduti, 1) OVER (PARTITION BY ir.denominazione_regione, ir.codice_regione ORDER BY ir.data ASC),0) as deceduti_nuovi
-      , ip.totale_casi
-      , ip.totale_casi - coalesce(LAG(ip.totale_casi, 1) OVER (PARTITION BY ir.denominazione_regione, ir.codice_regione ORDER BY ir.data ASC),0) as totale_casi_nuovi
+      , ir.totale_casi as totale_casi_regione
+      , ir.totale_casi - coalesce(LAG(ir.totale_casi, 1) OVER (PARTITION BY ir.denominazione_regione, ir.codice_regione ORDER BY ir.data ASC),0) as totale_casi_nuovi_regione
       , ir.tamponi
       , tamponi - coalesce(LAG(tamponi, 1) OVER (PARTITION BY ir.denominazione_regione, ir.codice_regione ORDER BY ir.data ASC),0) as tamponi_nuovi
     FROM
       `lookerdata.covid19.italy_regions` ir
-      LEFT JOIN ${italy_province.SQL_TABLE_NAME} ip
-        ON date(ir.data) = ip.data
-        AND ir.denominazione_regione = ip.denominazione_regione
-        AND ir.codice_regione = ip.codice_regione
-        AND ip.denominazione_provincia = "In fase di definizione/aggiornamento"
-    UNION ALL
-    SELECT
-      data
-      , denominazione_regione
-      , codice_regione
-      , denominazione_provincia
-      , sigla_provincia
-      , NULL as ricoverati_con_sintomi
-      , NULL as ricoverati_con_sintomi_cambio
-      , NULL as terapia_intensiva
-      , NULL as terapia_intensiva_cambio
-      , NULL as totale_ospedalizzati
-      , NULL as totale_ospedalizzati_cambio
-      , NULL as isolamento_domiciliare
-      , NULL as isolamento_domiciliare_cambio
-      , NULL as totale_attualmente_positivi
-      , NULL as nuovi_attualmente_positivi
-      , NULL as dimessi_guariti
-      , NULL as dimessi_guariti_nuovi
-      , NULL as deceduti
-      , NULL as deceduti_nuovi
-      , totale_casi
-      , totale_casi - coalesce(LAG(totale_casi, 1) OVER (PARTITION BY denominazione_regione, codice_regione ORDER BY data ASC),0) as totale_casi_nuovi
-      , NULL as tamponi
-      , NULL as tamponi_nuovi
-    FROM
-      ${italy_province.SQL_TABLE_NAME}
     WHERE
-      denominazione_provincia != "In fase di definizione/aggiornamento"
+      data is not null
+      AND denominazione_regione is not null
       ;;
     sql_trigger_value: SELECT COUNT(*) FROM `lookerdata.covid19.italy_regions` ;;
   }
@@ -71,7 +38,7 @@ view: italy_regions {
 
   dimension: pk {
     primary_key: yes
-    sql: concat(${denominazione_regione}, ${codice_regione}, ${denominazione_provincia}) ;;
+    sql: concat(${denominazione_regione}, ${codice_regione}, ${reporting_date}) ;;
     hidden: yes
   }
 
@@ -101,22 +68,7 @@ view: italy_regions {
     sql: ${TABLE}.codice_regione ;;
     label: "Region Code"
     description: "The ISTAT code of the region in Italy, (IT: Codice della Regione)"
-    drill_fields: [denominazione_provincia]
-  }
-
-  dimension: denominazione_provincia {
-    type: string
-    sql: ${TABLE}.denominazione_provincia ;;
-    hidden: yes
-    label: "Raw Province Name"
-    description: "The name of the province in Italy, (IT: Denominazione Provincia)"
-  }
-
-  dimension: sigla_provincia {
-    type: string
-    sql: ${TABLE}.sigla_provincia ;;
-    label: "Province Initials"
-    description: "The initials of the province in Italy, (IT: Sigla Provincia)"
+    drill_fields: [italy_province.denominazione_provincia]
   }
 
   dimension: ricoverati_con_sintomi {
@@ -203,13 +155,13 @@ view: italy_regions {
     label: "Newly deceased"
   }
 
-  dimension: totale_casi {
+  dimension: totale_casi_regione {
     type: number
     hidden: yes
     label: "Total cases"
   }
 
-  dimension: totale_casi_nuovi {
+  dimension: totale_casi_nuovi_regione {
     type: number
     hidden: yes
     label: "New cases"
@@ -231,24 +183,6 @@ view: italy_regions {
 
 ######## NEW DIMENSIONS ########
 
-  dimension: nome_pro {
-    type: string
-    sql:  CASE
-            WHEN UPPER(${denominazione_provincia}) = "FORLÌ-CESENA"
-            THEN "FORLI'-CESENA"
-            WHEN UPPER(${denominazione_provincia}) = "MASSA CARRARA"
-            THEN "MASSA-CARRARA"
-            WHEN UPPER(${denominazione_provincia}) = "IN FASE DI DEFINIZIONE/AGGIORNAMENTO"
-            THEN "Not Specified"
-            ELSE UPPER(${denominazione_provincia})
-          END
-             ;;
-    map_layer_name: province_italiane
-    html: {{ denominazione_provincia._value }} ;;
-    label: "Province Name"
-    description: "The name of the province in Italy, (IT: Denominazione Provincia)"
-  }
-
 #   dimension: is_max_date {
 #     type: yesno
 #     hidden: yes
@@ -269,7 +203,7 @@ view: italy_regions {
 #     html: {{ denominazione_regione._value }} ;;
     label: "Region Name"
     description: "The name of the region in Italy, (IT: Denominazione Regione)"
-    drill_fields: [denominazione_provincia]
+    drill_fields: [italy_provinces.denominazione_provincia]
   }
 
 ######## NEW MEASURES ########
@@ -279,7 +213,7 @@ view: italy_regions {
     type: number
     sql: ARRAY_AGG(${ricoverati_con_sintomi} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
     label: "Non-ICU hospitalizations"
-    description: "Current number of patients hospitalized, excluding in ICU (IT: Ricoverati con sintomi)"
+    description: "Current number of patients hospitalized, excluding in ICU (IT: Ricoverati con sintomi), avail by region only"
     group_label: "Current cases by status"
   }
 
@@ -294,7 +228,7 @@ view: italy_regions {
     type: number
     label: "Current ICU patients"
     sql: ARRAY_AGG(${terapia_intensiva} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
-    description: "Current number of patients in ICU (IT: Terapia intensiva)"
+    description: "Current number of patients in ICU (IT: Terapia intensiva), avail by region only"
     group_label: "Current cases by status"
   }
 
@@ -308,7 +242,7 @@ view: italy_regions {
     type: number
     sql: ARRAY_AGG(${totale_ospedalizzati} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
     label: "All hospitalizations"
-    description: "Current number of patients hospitalized, including in ICU (IT: Totale ospedalizzati)"
+    description: "Current number of patients hospitalized, including in ICU (IT: Totale ospedalizzati), avail by region only"
     group_label: "Current cases by status"
   }
 
@@ -322,7 +256,7 @@ view: italy_regions {
     type: number
     sql: ARRAY_AGG(${isolamento_domiciliare} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
     label: "Currently under home quarantine"
-    description: "Positive cases currently at home (IT: Isolamento domiciliare)"
+    description: "Positive cases currently at home (IT: Isolamento domiciliare), avail by region only"
     group_label: "Current cases by status"
   }
 #
@@ -336,7 +270,7 @@ view: italy_regions {
     type: number
     sql: ARRAY_AGG(${totale_attualmente_positivi} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
     label: "Total number of active cases"
-    description: "Count of active cases including hospitalized patients + home confinement (IT: Totale attualmente positive)"
+    description: "Count of active cases including hospitalized patients + home confinement (IT: Totale attualmente positive), avail by region only"
     group_label: "Total cases"
   }
 #
@@ -350,7 +284,7 @@ view: italy_regions {
     type: number
     sql: ARRAY_AGG(${dimessi_guariti} IGNORE NULLS ORDER BY ${reporting_date} DESC)[SAFE_ORDINAL(1)];;
     label: "Recovered"
-    description: "Running total of all patients who have recovered (IT: Dimessi guariti)"
+    description: "Running total of all patients who have recovered (IT: Dimessi guariti), avail by region only"
     group_label: "Resolved cases by status"
   }
 
@@ -358,7 +292,7 @@ view: italy_regions {
     type: sum
     sql: ${dimessi_guariti_nuovi} ;;
     label: "Newly recovered"
-    description: "The count of patients who were reported recovered in that day (IT: Dimessi guariti nuovi)"
+    description: "The count of patients who were reported recovered in that day (IT: Dimessi guariti nuovi), avail by region only"
     group_label: "Resolved cases by status"
   }
 
@@ -366,7 +300,7 @@ view: italy_regions {
     type: number
     sql: ARRAY_AGG(${deceduti} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
     label: "Deceased"
-    description: "Running total of deaths (IT: Deceduti)"
+    description: "Running total of deaths (IT: Deceduti), avail by region only"
     group_label: "Resolved cases by status"
   }
 
@@ -374,32 +308,57 @@ view: italy_regions {
     type: sum
     sql: ${deceduti_nuovi} ;;
     label: "Newly deceased"
-    description: "The count of deaths by day (IT: Deceduti nuovi)"
+    description: "The count of deaths by day (IT: Deceduti nuovi), avail by region only"
     group_label: "Resolved cases by status"
   }
 
-  measure: total_cases {
-    type: sum
-    sql: ${totale_casi_nuovi};;
-    label: "Total cases"
-    description: "Running total of confirmed cases (IT: Totale casi)"
-    group_label: "Total cases"
-    drill_fields: [denominazione_provincia]
+
+  measure: total_cases_region {
+    type: number
+    sql:  ARRAY_AGG(${totale_casi_regione} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
+    hidden: yes
   }
 
-  measure: new_cases {
-    type: sum
-    sql: ${totale_casi_nuovi} ;;
-    label: "New cases"
-    description: "Newly confirmed cases by day (IT: Totale casi nuovi)"
+  measure: total_cases {
+    type: number
+    sql: {% if italy_province.denominazione_provincia._in_query  or italy_province.sigla_provincia._in_query %}
+          ${italy_province.total_cases_province}
+         {% else %}
+        ${total_cases_region}
+          {% endif %}
+    ;;
+    label: "Total cases"
+    description: "Running total of confirmed cases (IT: Totale casi), avail by region or province"
     group_label: "Total cases"
+    drill_fields: [italy_province.denominazione_provincia]
   }
+
+  measure: new_cases_region {
+    type: number
+    sql:  ARRAY_AGG(${totale_casi_nuovi_regione} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
+    hidden: yes
+  }
+
+
+  measure: new_cases {
+    type: number
+    sql: {% if italy_province.denominazione_provincia._in_query  or italy_province.sigla_provincia._in_query %}
+        ${italy_province.new_cases_province}
+       {% else %}
+      ${new_cases_region}
+        {% endif %}
+        ;;
+      label: "New cases"
+      description: "Newly confirmed cases by day (IT: Totale casi nuovi), avail by region or province"
+      group_label: "Total cases"
+      drill_fields: [italy_province.denominazione_provincia]
+    }
 
   measure: tests_run {
     type: number
     sql: ARRAY_AGG(${tamponi} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
     label: "Tests run"
-    description: "Running total of tests run (IT: Tamponi)"
+    description: "Running total of tests run (IT: Tamponi), avail by region only"
     group_label: "Testing"
   }
 
@@ -407,73 +366,15 @@ view: italy_regions {
     type: sum
     sql: ${tamponi_nuovi} ;;
     label: "New tests run"
-    description: "Count of tests run by day (IT: Tamponi nuovi)"
+    description: "Count of tests run by day (IT: Tamponi nuovi), avail by region only"
     group_label: "Testing"
   }
 
-
-
-
-#   parameter: new_vs_running_total {
-#     type: unquoted
-#     default_value: "new_cases"
-#     allowed_value: {
-#       label: "New Cases"
-#       value: "new_cases"
-#     }
-#     allowed_value: {
-#       label: "Running Total"
-#       value: "running_total"
-#     }
-#   }
 
   measure: max_date {
     sql: MAX(${reporting_date}) ;;
     type: date
     label: "Last Update Date"
   }
-
-  # measure: confirmed_cases {
-  #   group_label: "Dynamic"
-  #   label: "Confirmed Cases"
-  #   type: number
-  #   sql:
-  #       {% if new_vs_running_total._parameter_value == 'new_cases' %} ${confirmed_new}
-  #       {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${confirmed_running_total}
-  #       {% endif %} ;;
-  # }
-
-#   measure: confirmed_new {
-#     label: "Confirmed Cases (New)"
-#     type: sum
-#     sql: ${new_cases} ;;
-#   }
-#
-#   measure: confirmed_option_1 {
-#     hidden: yes
-#     type: sum
-#     sql: ${total_cases} ;;
-#   }
-#
-#   measure: confirmed_option_2 {
-#     hidden: yes
-#     type: sum
-#     sql: ${total_cases} ;;
-#     filters: {
-#       field: is_max_date
-#       value: "Yes"
-#     }
-#   }
-#
-#   measure: confirmed_running_total {
-#     label: "Confirmed Cases (Running Total)"
-#     type: number
-#     sql:
-#           {% if italy.reporting_date._in_query %} ${confirmed_option_1}
-#           {% else if italy.reporting_week._in_query %}${confirmed_option_1}
-#           {% else if italy.reporting_month._in_query %}${confirmed_option_1}
-#           {% else %}  ${confirmed_option_2}
-#           {% endif %} ;;
-#   }
 
 }

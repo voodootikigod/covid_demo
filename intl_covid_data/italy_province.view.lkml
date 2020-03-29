@@ -10,8 +10,8 @@ view: italy_province {
         , denominazione_regione
         , SUM(totale_casi) as provincia_casi
       FROM covid19.italy_province
-      GROUP BY 1, 2, 3)
-    SELECT
+      GROUP BY 1, 2, 3),
+    unioned_provinces as (SELECT
       date(ir.data) as data
       , ir.denominazione_regione
       , ir.codice_regione
@@ -41,11 +41,122 @@ view: italy_province {
     FROM
       covid19.italy_province
     WHERE
-      not (denominazione_provincia = "In fase di definizione/aggiornamento" AND totale_casi = 0)
-    ORDER BY 1, 2
+      not (denominazione_provincia = "In fase di definizione/aggiornamento" AND totale_casi = 0))
+    SELECT
+      data
+      , denominazione_regione
+      , codice_regione
+      , denominazione_provincia
+      , sigla_provincia
+      , totale_casi
+      , totale_casi - coalesce(LAG(totale_casi, 1) OVER (PARTITION BY denominazione_provincia, denominazione_regione ORDER BY data ASC),0) as totale_casi_nuovi
+    FROM
+      unioned_provinces
     ;;
     sql_trigger_value: SELECT COUNT(*) FROM `lookerdata.covid19.italy_province` ;;
   }
+
+######## PRIMARY KEY ########
+
+  dimension: pk {
+    primary_key: yes
+    sql: concat(${denominazione_regione}, ${denominazione_provincia}, ${reporting_date}) ;;
+    hidden: yes
+  }
+
+######## RAW DIMENSIONS ########
+
+  dimension_group: reporting {
+    type: time
+    datatype: date
+    timeframes: [
+      date,
+    ]
+    sql: ${TABLE}.data ;;
+    hidden: yes
+  }
+
+  dimension: denominazione_regione {
+    type: string
+    sql: ${TABLE}.denominazione_regione ;;
+    hidden: yes
+    label: "Region Name"
+    description: "The name of the region in Italy, with Trento and Bolzano named separately (IT: Denominazione Regione)"
+  }
+
+  dimension: codice_regione {
+    type: number
+    sql: ${TABLE}.codice_regione ;;
+    hidden: yes
+    label: "Region Code"
+    description: "The ISTAT code of the region in Italy, (IT: Codice della Regione)"
+    drill_fields: [italy_province.denominazione_provincia]
+  }
+
+  dimension: denominazione_provincia {
+    type: string
+    sql: ${TABLE}.denominazione_provincia ;;
+    hidden: yes
+    label: "Raw Province Name"
+    description: "The name of the province in Italy, (IT: Denominazione Provincia)"
+  }
+
+  dimension: sigla_provincia {
+    type: string
+    sql: ${TABLE}.sigla_provincia ;;
+    label: "Province Initials"
+    description: "The initials of the province in Italy, (IT: Sigla Provincia)"
+  }
+
+  dimension: totale_casi {
+    type: number
+    hidden: yes
+    label: "Total cases"
+  }
+
+  dimension: totale_casi_nuovi {
+    type: number
+    hidden: yes
+    label: "New cases"
+  }
+
+
+######## NEW DIMENSIONS ########
+
+  dimension: nome_pro {
+    type: string
+    sql:  CASE
+            WHEN UPPER(${denominazione_provincia}) = "FORLÌ-CESENA"
+            THEN "FORLI'-CESENA"
+            WHEN UPPER(${denominazione_provincia}) = "MASSA CARRARA"
+            THEN "MASSA-CARRARA"
+            WHEN UPPER(${denominazione_provincia}) = "IN FASE DI DEFINIZIONE/AGGIORNAMENTO"
+            THEN "Not Specified"
+            ELSE UPPER(${denominazione_provincia})
+          END
+             ;;
+    map_layer_name: province_italiane
+    html: {{ denominazione_provincia._value }} ;;
+    label: "Province Name"
+    description: "The name of the province in Italy, (IT: Denominazione Provincia)"
+  }
+
+
+######## NEW MEASURES ########
+
+  measure: total_cases_province {
+    type: number
+    sql:  ARRAY_AGG(${totale_casi} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
+    hidden: yes
+  }
+
+  measure: new_cases_province {
+    type: number
+    sql:  ARRAY_AGG(${totale_casi_nuovi} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
+    hidden: yes
+  }
+
+
 
 
 
