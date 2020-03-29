@@ -1,5 +1,117 @@
-view: jhu_sample_county_level_final {
+view: nyc_correction {
+  derived_table: {
+    datagroup_trigger: covid_data
+    sql:
 
+      SELECT
+        fips,
+        county,
+        province_state,
+        country_region,
+        lat,
+        long,
+        combined_key,
+        measurement_date,
+        confirmed,
+        deaths
+
+    FROM `lookerdata.covid19.combined_covid_data`
+    WHERE NOT (province_state = 'New York' AND country_region = 'US' AND fips is null)
+
+    UNION ALL
+
+    SELECT
+    36005 as fips,
+    'Bronx' as county,
+    'New York' as province_state,
+    'US' as country_region,
+    40.860208 as lat,
+    -73.857072 as long,
+    'Bronx, New York, US' as combined_key,
+    measurement_date,
+    round(confirmed * 0.17,0) as confirmed,
+    round(deaths * 0.17,0) as deaths
+    FROM `lookerdata.covid19.combined_covid_data`
+    WHERE province_state = 'New York'
+    AND country_region = 'US'
+    AND fips is null
+
+    UNION ALL
+
+    SELECT
+      36081 as fips,
+      'Queens' as county,
+      'New York' as province_state,
+      'US' as country_region,
+      40.724358 as lat,
+      -73.798797 as long,
+      'Queens, New York, US' as combined_key,
+      measurement_date,
+      round(confirmed * 0.27,0) as confirmed,
+      round(deaths * 0.27,0) as deaths
+    FROM `lookerdata.covid19.combined_covid_data`
+    WHERE province_state = 'New York'
+    AND country_region = 'US'
+    AND fips is null
+
+    UNION ALL
+
+    SELECT
+      36061 as fips,
+      'New York County' as county,
+      'New York' as province_state,
+      'US' as country_region,
+      40.774242 as lat,
+      -73.975842 as long,
+      'New York County, New York, US' as combined_key,
+      measurement_date,
+      round(confirmed * 0.19,0) as confirmed,
+      round(deaths * 0.19,0) as deaths
+    FROM `lookerdata.covid19.combined_covid_data`
+    WHERE province_state = 'New York'
+    AND country_region = 'US'
+    AND fips is null
+
+    UNION ALL
+
+    SELECT
+      36047 as fips,
+      'Brooklyn' as county,
+      'New York' as province_state,
+      'US' as country_region,
+      40.682217 as lat,
+      -73.937122 as long,
+      'Brooklyn, New York, US' as combined_key,
+      measurement_date,
+      round(confirmed * 0.31,0) as confirmed,
+      round(deaths * 0.31,0) as deaths
+    FROM `lookerdata.covid19.combined_covid_data`
+    WHERE province_state = 'New York'
+    AND country_region = 'US'
+    AND fips is null
+
+    UNION ALL
+
+    SELECT
+      36085 as fips,
+      'Richmond' as county,
+      'New York' as province_state,
+      'US' as country_region,
+      40.585763 as lat,
+      -74.135702 as long,
+      'Richmond, New York, US' as combined_key,
+      measurement_date,
+      round(confirmed * 0.06,0) as confirmed,
+      round(deaths * 0.06,0) as deaths
+    FROM `lookerdata.covid19.combined_covid_data`
+    WHERE province_state = 'New York'
+    AND country_region = 'US'
+    AND fips is null
+
+    ;;
+  }
+}
+view: jhu_sample_county_level_final {
   derived_table: {
     datagroup_trigger: covid_data
     sql:
@@ -21,7 +133,7 @@ view: jhu_sample_county_level_final {
         deaths as deaths_cumulative,
         deaths - coalesce(LAG(deaths, 1) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,''))  ORDER BY measurement_date ASC),0) as deaths_new_cases
 
-    FROM `lookerdata.covid19.combined_covid_data`
+    FROM ${nyc_correction.SQL_TABLE_NAME}
 
     UNION ALL
 
@@ -357,7 +469,6 @@ view: jhu_sample_county_level_final {
           {% endif %} ;;
   }
 
-
 ####################
 #### Measures ####
 ####################
@@ -465,6 +576,30 @@ view: jhu_sample_county_level_final {
     sql: 1000000*${confirmed_running_total} / nullif(${population_by_county_state_country.sum_population},0) ;;
     value_format_name: decimal_0
     drill_fields: [drill*]
+  }
+
+  measure: confirmed_cases_per_icu_beds {
+    group_label: "Hospital Capacity"
+    label: "Confirmed Cases per ICU Beds"
+    type: number
+    sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_icu_beds},0) ;;
+    value_format_name: decimal_2
+  }
+
+  measure: confirmed_cases_per_staffed_beds {
+    group_label: "Hospital Capacity"
+    label: "Confirmed Cases per Staffed Beds"
+    type: number
+    sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_staffed_beds},0) ;;
+    value_format_name: decimal_2
+  }
+
+  measure: confirmed_cases_per_licensed_beds {
+    group_label: "Hospital Capacity"
+    label: "Confirmed Cases per Licensed Beds"
+    type: number
+    sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_licensed_beds},0) ;;
+    value_format_name: decimal_2
   }
 
   measure: deaths_new_option_1 {

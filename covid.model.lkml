@@ -32,6 +32,15 @@ explore: jhu_sample_county_level_final {
     ;;
   }
 
+## Hospital Bed Data ##
+
+  join: hospital_bed_summary_final {
+    view_label: " COVID19"
+    relationship: many_to_many
+    sql_on: ${jhu_sample_county_level_final.fips} = ${hospital_bed_summary_final.fips} ;;
+  }
+
+
 ## Max Date for Running Total Logic ##
 
   join: max_date_covid {
