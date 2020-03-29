@@ -143,12 +143,14 @@ view: jhu_sample_county_level_final {
   }
 
   dimension: county_full {
+    hidden: yes
     group_label: "Location"
     label: "County (Full)"
     sql: concat(coalesce(concat(${county},', '),''),coalesce(concat(${province_state},', ')),${country_region}) ;;
   }
 
   dimension: state_full {
+    hidden: yes
     group_label: "Location"
     label: "State (Full)"
     sql: concat(coalesce(concat(${province_state},', ')),${country_region}) ;;
@@ -190,6 +192,34 @@ view: jhu_sample_county_level_final {
 ####################
 #### Derived Dimensions ####
 ####################
+
+#   parameter: location_selector {
+#     type: unquoted
+#     default_value: "state"
+#     allowed_value: {
+#       label: "State"
+#       value: "state"
+#     }
+#     allowed_value: {
+#       label: "County"
+#       value: "county"
+#     }
+#     allowed_value: {
+#       label: "PUMA"
+#       value: "puma"
+#     }
+#   }
+#
+#   dimension: location_selection {
+#     group_label: "Location"
+#     type: string
+#     sql:
+#         {% if    location_selector._parameter_value == 'state' %} ${province_state}
+#         {% elsif location_selector._parameter_value == 'county' %} ${fips}
+#         {% elsif location_selector._parameter_value == 'puma' %} ${zip_to_puma_v2.puma}
+#         {% endif %} ;;
+#   }
+
 
   dimension: is_max_date {
     hidden: yes
@@ -318,11 +348,30 @@ view: jhu_sample_county_level_final {
     drill_fields: [drill*]
   }
 
+  measure: confirmed_new_option_1 {
+    hidden: yes
+    type: sum
+    sql: ${confirmed_new_cases} ;;
+  }
+
+  measure: confirmed_new_option_2 {
+    hidden: yes
+    type: sum
+    sql: ${confirmed_new_cases} ;;
+    filters: {
+      field: is_max_date
+      value: "Yes"
+    }
+  }
+
   measure: confirmed_new {
     group_label: " New Cases"
     label: "Confirmed Cases (New)"
-    type: sum
-    sql: ${confirmed_new_cases} ;;
+    type: number
+    sql:
+      {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${confirmed_new_option_1}
+      {% else %}  ${confirmed_new_option_2}
+      {% endif %} ;;
   }
 
   measure: confirmed_new_per_million {
@@ -369,11 +418,30 @@ view: jhu_sample_county_level_final {
     drill_fields: [drill*]
   }
 
+  measure: deaths_new_option_1 {
+    hidden: yes
+    type: sum
+    sql: ${deaths_new_cases} ;;
+  }
+
+  measure: deaths_new_option_2 {
+    hidden: yes
+    type: sum
+    sql: ${deaths_new_cases} ;;
+    filters: {
+      field: is_max_date
+      value: "Yes"
+    }
+  }
+
   measure: deaths_new {
     group_label: " New Cases"
     label: "Deaths (New)"
-    type: sum
-    sql: ${deaths_new_cases} ;;
+    type: number
+    sql:
+      {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${deaths_new_option_1}
+      {% else %}  ${deaths_new_option_2}
+      {% endif %} ;;
   }
 
   measure: deaths_new_per_million {

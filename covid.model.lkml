@@ -73,6 +73,25 @@ explore: jhu_sample_county_level_final {
     relationship: many_to_many
     sql_on: ${zip_to_county.zip} =  ${zip_to_puma_v2.zip} ;;
   }
+
+  join: acs_puma_facts {
+    view_label: "Vulnerable Populations"
+    relationship: many_to_one
+    sql_on: ${zip_to_puma_v2.puma} = ${acs_puma_facts.puma} ;;
+  }
+
+  join: acs_zip_codes_2017_5yr {
+    view_label: "Vulnerable Populations"
+    fields: [acs_zip_codes_2017_5yr.population_density]
+    relationship: many_to_one
+    sql_on: ${zip_to_puma_v2.zip}=${acs_zip_codes_2017_5yr.geo_id} ;;
+  }
+
+  join: us_zipcode_boundaries {
+    fields: []
+    relationship: one_to_one
+    sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
+  }
 }
 
 explore: kpis_by_entity_by_date {
