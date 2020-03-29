@@ -61,6 +61,18 @@ explore: jhu_sample_county_level_final {
         ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
     AND ${jhu_sample_county_level_final.pre_pk} = ${prior_days_cases_covid.pre_pk};;
   }
+
+## Logic to map county data to PUMA level ##
+
+  join: zip_to_county {
+    relationship: many_to_many
+    sql_on: ${jhu_sample_county_level_final.fips_as_string} =  ${zip_to_county.county} ;;
+  }
+
+  join: zip_to_puma_v2 {
+    relationship: many_to_many
+    sql_on: ${zip_to_county.zip} =  ${zip_to_puma_v2.zip} ;;
+  }
 }
 
 explore: kpis_by_entity_by_date {
@@ -72,6 +84,7 @@ explore: kpis_by_entity_by_date {
           {% else %}  1 = 1
           {% endif %}
   ;;
+
 }
 
 

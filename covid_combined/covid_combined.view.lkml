@@ -127,6 +127,13 @@ view: jhu_sample_county_level_final {
     html: {{ county._value }} ;;
   }
 
+  dimension: fips_as_string {
+    hidden: yes
+    type: string
+    sql: CASE WHEN LENGTH(cast(${fips} as string)) = 4 THEN CONCAT('0',${fips})
+    ELSE cast(${fips} as string) END;;
+  }
+
   dimension: province_state {
     group_label: "Location"
     label: "State"
@@ -438,6 +445,46 @@ view: jhu_sample_county_level_final {
     type: count
     drill_fields: []
   }
+
+########################################
+## County to PUMA Measure Conversion ###
+########################################
+
+
+#   dimension: base_result {
+#     hidden: yes
+#     type: number
+#     sql: 1 ;;
+#   }
+
+  dimension: puma_conversion_factor {
+    hidden: yes
+    description: "Convert county to zip then zip to PUMA, by population weight respectively"
+    type: number
+    sql: (${zip_to_county.pct_county_pop_in_zip})*(${zip_to_puma_v2.pct_zip_pop_in_puma}) ;;
+  }
+
+  dimension: puma_confirmed_new_cases {
+    description: "For zip to PUMA or County weighting"
+    hidden: yes
+    type: number
+    sql: ${confirmed_new_cases}*${puma_conversion_factor} ;;
+  }
+
+  measure: puma_confirmed_new {
+    group_label: "Measures by Public Use Microdata Area (PUMA)"
+    label: "PUMA - Confirmed Cases (New)"
+    type: sum_distinct
+    sql: ${puma_confirmed_new_cases} ;;
+    sql_distinct_key: concat(${pk},${zip_to_county.zip},${zip_to_puma_v2.puma}) ;;
+    value_format_name: decimal_0
+  }
+
+
+
+##############
+### Drills ###
+##############
 
   set: drill {
     fields: [
