@@ -13,8 +13,11 @@ include: "/us_covid_data/*.view.lkml"
 ## All other data (March 1 - 25) is extrapolated from those values
 
 explore: jhu_sample_county_level_final {
-  label: "COVID"
+  group_label: "*COVID 19"
+  label: "COVID - Main"
   view_label: " COVID19"
+
+## Testing Data by State (US Only) ##
 
   join: covid_tracking_project_sample_final {
     view_label: " COVID19"
@@ -25,6 +28,8 @@ explore: jhu_sample_county_level_final {
     ;;
   }
 
+## Max Date for Running Total Logic ##
+
   join: max_date_covid {
     relationship: one_to_one
     sql_on: 1 = 1  ;;
@@ -33,6 +38,24 @@ explore: jhu_sample_county_level_final {
   join: max_date_tracking_project {
     relationship: one_to_one
     sql_on: 1 = 1  ;;
+  }
+
+## Advanced Analytics ##
+
+  join: prior_days_cases_covid {
+    view_label: " COVID19"
+    relationship: one_to_one
+    sql_on:
+        ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
+    AND ${jhu_sample_county_level_final.pre_pk} = ${prior_days_cases_covid.pre_pk};;
+  }
+
+## Add in state & country region & population ##
+
+  join: population_by_county_state_country {
+    view_label: " COVID19"
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.pre_pk} = ${population_by_county_state_country.pre_pk} ;;
   }
 
   join: state_region {
@@ -47,14 +70,56 @@ explore: jhu_sample_county_level_final {
     sql_on: ${jhu_sample_county_level_final.country_region} = ${country_region.country} ;;
   }
 
-  join: prior_days_cases_covid {
-    view_label: " COVID19"
+## Logic to map county data to PUMA level ##
+
+  join: zip_to_county {
+    relationship: many_to_many
+    sql_on: ${jhu_sample_county_level_final.fips_as_string} =  ${zip_to_county.county} ;;
+  }
+
+  join: zip_to_puma_v2 {
+    relationship: many_to_many
+    sql_on: ${zip_to_county.zip} =  ${zip_to_puma_v2.zip} ;;
+  }
+
+  join: acs_puma_facts {
+    view_label: "Vulnerable Populations"
+    relationship: many_to_one
+    sql_on: ${zip_to_puma_v2.puma} = ${acs_puma_facts.puma} ;;
+  }
+
+  join: acs_zip_codes_2017_5yr {
+    view_label: "Vulnerable Populations"
+    fields: [acs_zip_codes_2017_5yr.population_density]
+    relationship: many_to_one
+    sql_on: ${zip_to_puma_v2.zip}=${acs_zip_codes_2017_5yr.geo_id} ;;
+  }
+
+  join: us_zipcode_boundaries {
+    fields: []
     relationship: one_to_one
-    sql_on:
-        ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
-    AND ${jhu_sample_county_level_final.combined_key} = ${prior_days_cases_covid.combined_key};;
+    sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
   }
 }
+
+explore: kpis_by_entity_by_date {
+  group_label: "*COVID 19"
+  label: "COVID Apps - Compare Geographies"
+  view_label: " COVID19"
+  sql_always_where:
+          {% if kpis_by_entity_by_date.days_since_first_outbreaks._in_query %} ${days_since_first_outbreaks} > 0
+          {% else %}  1 = 1
+          {% endif %}
+  ;;
+}
+
+explore: covid_forecasting {
+  group_label: "*COVID 19"
+  label: "COVID Apps - Forecasting"
+}
+
+explore: covid_forecasting_results {}
+
 
 
 ############ Census ############
@@ -94,6 +159,7 @@ explore: acs_puma_2018 {
 ############ OLD INTL ############
 
 explore: covid_data {
+  group_label: "OLD"
 
   join: max_date_intl {
     fields: []
@@ -148,6 +214,7 @@ explore: italy {
 ############ OLD US ############
 
 explore: tests_by_state {
+  group_label: "OLD"
 
   join: max_date_us {
     fields: []
@@ -170,7 +237,15 @@ persist_with: covid_data
 
 datagroup: covid_data {
   max_cache_age: "12 hours"
-  sql_trigger: SELECT count(*) FROM  `lookerdata.covid19.jhu_sample_county_level_final` ;;
+  sql_trigger:
+  SELECT sum(count)
+  FROM
+  (
+    SELECT count(*) as count FROM `lookerdata.covid19.nyt_covid_data`
+    UNION ALL
+    SELECT count(*) as count FROM `bigquery-public-data.covid19_jhu_csse.summary`
+  )
+  ;;
 }
 
 datagroup: jhu_data {

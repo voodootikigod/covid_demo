@@ -1,6 +1,13 @@
 view: zip_to_puma_v2 {
   sql_table_name: lookerdata.covid19.zip_to_puma_v2 ;;
-  label: "Location"
+  label: " COVID19"
+
+  dimension: primary_key {
+    type:string
+    primary_key: yes
+    sql: CONCAT(${zip}, ${puma}) ;;
+    hidden: yes
+  }
 
   dimension: name {
     hidden: yes
@@ -12,12 +19,14 @@ view: zip_to_puma_v2 {
     hidden: yes
     type: number
     sql: ${TABLE}.pct_puma_pop_in_zip ;;
+    value_format_name: percent_3
   }
 
   dimension: pct_zip_pop_in_puma {
     hidden: yes
     type: number
     sql: ${TABLE}.pct_zip_pop_in_puma ;;
+    value_format_name: percent_3
   }
 
   dimension: puma_raw {
@@ -28,6 +37,7 @@ view: zip_to_puma_v2 {
   }
 
   dimension: puma {
+    group_label: "Location"
     label: "Public Use Microdata Area (PUMA)"
     type: string
     sql:CASE WHEN LENGTH(cast(${puma_raw} as string)) = 6 THEN CONCAT('0',${puma_raw}) ELSE cast(${puma_raw} as string) END ;;
@@ -52,6 +62,7 @@ view: zip_to_puma_v2 {
   }
 
   dimension: state_abbreviation {
+    hidden: yes
     label: "State"
     type: string
     sql: ${TABLE}.state_abbreviation ;;
@@ -65,6 +76,7 @@ view: zip_to_puma_v2 {
   }
 
   dimension: state_name {
+    hidden: yes
     type: string
     sql: ${TABLE}.state_name ;;
   }
@@ -77,6 +89,7 @@ view: zip_to_puma_v2 {
   }
 
   dimension: zip {
+    hidden: yes
     type: zipcode
     sql: CASE
       WHEN LENGTH(cast(${zcta5} as string)) = 3 THEN CONCAT('00',${zcta5})
