@@ -17,6 +17,8 @@ explore: jhu_sample_county_level_final {
   label: "COVID - Main"
   view_label: " COVID19"
 
+## Testing Data by State (US Only) ##
+
   join: covid_tracking_project_sample_final {
     view_label: " COVID19"
     relationship: many_to_one
@@ -25,6 +27,8 @@ explore: jhu_sample_county_level_final {
       AND ${jhu_sample_county_level_final.measurement_raw} = ${covid_tracking_project_sample_final.measurement_raw}
     ;;
   }
+
+## Max Date for Running Total Logic ##
 
   join: max_date_covid {
     relationship: one_to_one
@@ -35,6 +39,26 @@ explore: jhu_sample_county_level_final {
     relationship: one_to_one
     sql_on: 1 = 1  ;;
   }
+
+## Advanced Analytics ##
+
+  join: prior_days_cases_covid {
+    view_label: " COVID19"
+    relationship: one_to_one
+    sql_on:
+        ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
+    AND ${jhu_sample_county_level_final.pre_pk} = ${prior_days_cases_covid.pre_pk};;
+  }
+
+## Forecasting ##
+
+  join: day_counter_90_days {
+    fields: []
+    relationship: one_to_one
+    sql_on: 1 = 1  ;;
+  }
+
+## Add in state & country region & population ##
 
   join: population_by_county_state_country {
     view_label: " COVID19"
@@ -52,14 +76,6 @@ explore: jhu_sample_county_level_final {
     view_label: " COVID19"
     relationship: many_to_one
     sql_on: ${jhu_sample_county_level_final.country_region} = ${country_region.country} ;;
-  }
-
-  join: prior_days_cases_covid {
-    view_label: " COVID19"
-    relationship: one_to_one
-    sql_on:
-        ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
-    AND ${jhu_sample_county_level_final.pre_pk} = ${prior_days_cases_covid.pre_pk};;
   }
 
 ## Logic to map county data to PUMA level ##

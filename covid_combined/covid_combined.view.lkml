@@ -308,6 +308,11 @@ view: jhu_sample_county_level_final {
           {% endif %} ;;
   }
 
+#   dimension: days_since_max_date {
+#     type: number
+#     sql: date_diff(${measurement_raw},${county_outbreak_start_date},  day) + 1 ;;
+#   }
+
 
 ####################
 #### Measures ####

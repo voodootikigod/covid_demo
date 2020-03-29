@@ -485,6 +485,16 @@ view: prior_days_cases_covid {
 ### Forecasting
 ####################
 
+view: day_counter_90_days {
+  sql_table_name: `lookerdata.covid19.day_counter_90_days` ;;
+
+  dimension: number {
+    hidden: yes
+    primary_key: yes
+    sql: ${TABLE}.number ;;
+  }
+}
+
 view: forecasting {
   derived_table: {
     sql:
