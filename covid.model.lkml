@@ -13,7 +13,8 @@ include: "/us_covid_data/*.view.lkml"
 ## All other data (March 1 - 25) is extrapolated from those values
 
 explore: jhu_sample_county_level_final {
-  label: "COVID"
+  group_label: "*COVID 19"
+  label: "COVID - Main"
   view_label: " COVID19"
 
   join: covid_tracking_project_sample_final {
@@ -58,8 +59,19 @@ explore: jhu_sample_county_level_final {
     relationship: one_to_one
     sql_on:
         ${jhu_sample_county_level_final.measurement_date} = ${prior_days_cases_covid.measurement_date}
-    AND ${jhu_sample_county_level_final.combined_key} = ${prior_days_cases_covid.combined_key};;
+    AND ${jhu_sample_county_level_final.pre_pk} = ${prior_days_cases_covid.pre_pk};;
   }
+}
+
+explore: kpis_by_entity_by_date {
+  group_label: "*COVID 19"
+  label: "COVID Apps - Compare Geographies"
+  view_label: " COVID19"
+  sql_always_where:
+          {% if kpis_by_entity_by_date.days_since_first_outbreaks._in_query %} ${days_since_first_outbreaks} > 0
+          {% else %}  1 = 1
+          {% endif %}
+  ;;
 }
 
 
@@ -100,6 +112,7 @@ explore: acs_puma_2018 {
 ############ OLD INTL ############
 
 explore: covid_data {
+  group_label: "OLD"
 
   join: max_date_intl {
     fields: []
@@ -148,6 +161,7 @@ explore: italy {
 ############ OLD US ############
 
 explore: tests_by_state {
+  group_label: "OLD"
 
   join: max_date_us {
     fields: []

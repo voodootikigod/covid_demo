@@ -34,6 +34,10 @@ view: max_date_tracking_project {
   }
 }
 
+####################
+### Advanced Analytics
+####################
+
 view: prior_days_cases_covid {
   view_label: "Trends"
   derived_table: {
@@ -43,6 +47,12 @@ view: prior_days_cases_covid {
       column: pre_pk {}
       column: confirmed_running_total {}
       column: deaths_running_total {}
+      column: confirmed_new {}
+      column: deaths_new {}
+      column: confirmed_running_total_per_million {}
+      column: deaths_running_total_per_million {}
+      column: confirmed_new_per_million {}
+      column: deaths_new_per_million {}
 
       derived_column: prior_1_days_confirmed_running_total {sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${pre_pk} ORDER BY ${measurement_date} asc ROWS BETWEEN 2 PRECEDING and 1 PRECEDING),0) ;;}
       derived_column: prior_2_days_confirmed_running_total {sql: coalesce (max (${confirmed_running_total}) OVER (PARTITION BY ${pre_pk} ORDER BY ${measurement_date} asc ROWS BETWEEN 3 PRECEDING and 2 PRECEDING),0) ;;}
@@ -115,14 +125,14 @@ view: prior_days_cases_covid {
     primary_key: yes
     hidden: yes
     type: string
-    sql: concat(${combined_key},${measurement_date}) ;;
+    sql: concat(${pre_pk},${measurement_date}) ;;
   }
 
   dimension: measurement_date {
     type: date
     hidden:yes
   }
-  dimension: combined_key { hidden:yes}
+  dimension: pre_pk { hidden:yes}
 
   dimension: prior_1_days_confirmed_running_total {type:number hidden:yes}
   dimension: prior_2_days_confirmed_running_total {type:number hidden:yes}
@@ -470,3 +480,382 @@ view: prior_days_cases_covid {
 #     value_format_name: percent_0
 #     sql:  (${covid_data.confirmed_running_total} - ${prior_1_days_cumulative_cases}) / NULLIF(${prior_1_days_cumulative_cases},0);;
 #   }
+
+####################
+### Forecasting
+####################
+
+view: forecasting {
+  derived_table: {
+    sql:
+      SELECT *
+      FROM ${jhu_sample_county_level_final.SQL_TABLE_NAME}
+
+    ;;
+  }
+}
+
+
+####################
+### Compare Geographies
+####################
+
+view: kpis_by_county_by_date {
+  derived_table: {
+    datagroup_trigger: covid_data
+    explore_source: jhu_sample_county_level_final {
+      column: county_full {}
+      column: measurement_date {}
+      column: days_since_first_outbreak {}
+      column: confirmed_new {}
+      column: confirmed_new_per_million {}
+      column: deaths_new {}
+      column: deaths_new_per_million {}
+      column: confirmed_running_total {}
+      column: confirmed_running_total_per_million {}
+      column: deaths_running_total {}
+      column: deaths_running_total_per_million {}
+      column: doubling_time_confirmed_cases_new_per_million { field: prior_days_cases_covid.doubling_time_confirmed_cases_new_per_million }
+      column: doubling_time_confirmed_cases_rolling_total_per_million { field: prior_days_cases_covid.doubling_time_confirmed_cases_rolling_total_per_million }
+      column: doubling_time_deaths_new_per_million { field: prior_days_cases_covid.doubling_time_deaths_new_per_million }
+      column: doubling_time_deaths_rolling_total_per_million { field: prior_days_cases_covid.doubling_time_deaths_rolling_total_per_million }
+      filters: {
+        field: jhu_sample_county_level_final.fips
+        value: "NOT NULL"
+      }
+    }
+  }
+}
+
+view: kpis_by_state_by_date {
+  derived_table: {
+    datagroup_trigger: covid_data
+    explore_source: jhu_sample_county_level_final {
+      column: state_full {}
+      column: measurement_date {}
+      column: days_since_first_outbreak {}
+      column: confirmed_new {}
+      column: confirmed_new_per_million {}
+      column: deaths_new {}
+      column: deaths_new_per_million {}
+      column: confirmed_running_total {}
+      column: confirmed_running_total_per_million {}
+      column: deaths_running_total {}
+      column: deaths_running_total_per_million {}
+      column: doubling_time_confirmed_cases_new_per_million { field: prior_days_cases_covid.doubling_time_confirmed_cases_new_per_million }
+      column: doubling_time_confirmed_cases_rolling_total_per_million { field: prior_days_cases_covid.doubling_time_confirmed_cases_rolling_total_per_million }
+      column: doubling_time_deaths_new_per_million { field: prior_days_cases_covid.doubling_time_deaths_new_per_million }
+      column: doubling_time_deaths_rolling_total_per_million { field: prior_days_cases_covid.doubling_time_deaths_rolling_total_per_million }
+      filters: {
+        field: jhu_sample_county_level_final.province_state
+        value: "-NULL"
+      }
+    }
+  }
+}
+
+view: kpis_by_country_by_date {
+  derived_table: {
+    datagroup_trigger: covid_data
+    explore_source: jhu_sample_county_level_final {
+      column: country_region {}
+      column: measurement_date {}
+      column: days_since_first_outbreak {}
+      column: confirmed_new {}
+      column: confirmed_new_per_million {}
+      column: deaths_new {}
+      column: deaths_new_per_million {}
+      column: confirmed_running_total {}
+      column: confirmed_running_total_per_million {}
+      column: deaths_running_total {}
+      column: deaths_running_total_per_million {}
+      column: doubling_time_confirmed_cases_new_per_million { field: prior_days_cases_covid.doubling_time_confirmed_cases_new_per_million }
+      column: doubling_time_confirmed_cases_rolling_total_per_million { field: prior_days_cases_covid.doubling_time_confirmed_cases_rolling_total_per_million }
+      column: doubling_time_deaths_new_per_million { field: prior_days_cases_covid.doubling_time_deaths_new_per_million }
+      column: doubling_time_deaths_rolling_total_per_million { field: prior_days_cases_covid.doubling_time_deaths_rolling_total_per_million }
+      filters: {
+        field: jhu_sample_county_level_final.country_region
+        value: "-NULL"
+      }
+    }
+  }
+}
+
+view: kpis_by_entity_by_date {
+  derived_table: {
+    datagroup_trigger: covid_data
+    sql:
+
+  SELECT
+    'County' as entity_level
+  , county_full as entity
+  , measurement_date
+  , days_since_first_outbreak
+  , confirmed_new
+  , confirmed_new_per_million
+  , deaths_new
+  , deaths_new_per_million
+  , confirmed_running_total
+  , confirmed_running_total_per_million
+  , deaths_running_total
+  , deaths_running_total_per_million
+  , doubling_time_confirmed_cases_new_per_million
+  , doubling_time_confirmed_cases_rolling_total_per_million
+  , doubling_time_deaths_new_per_million
+  , doubling_time_deaths_rolling_total_per_million
+  FROM ${kpis_by_county_by_date.SQL_TABLE_NAME}
+
+  UNION ALL
+
+  SELECT 'State' as entity_level, *
+  FROM ${kpis_by_state_by_date.SQL_TABLE_NAME}
+
+  UNION ALL
+
+  SELECT 'Country' as entity_level, *
+  FROM ${kpis_by_country_by_date.SQL_TABLE_NAME}
+
+    ;;
+  }
+
+  dimension: entity {
+    type: string
+#     sql:
+#       CASE
+#         WHEN entity = 'Country' then concat('  ',${TABLE}.entity)
+#         WHEN entity = 'State' then concat(' ',${TABLE}.entity)
+#         WHEN entity = 'County' then ${TABLE}.entity
+#       END
+#     ;;
+  }
+  dimension: pk {
+    primary_key: yes
+    hidden: yes
+    sql: concat(${entity},cast(${measurement_date} as string)) ;;
+  }
+
+  dimension_group: measurement {
+    type: time
+    timeframes: [
+      raw,date
+    ]
+    sql: ${TABLE}.measurement_date ;;
+  }
+
+  dimension: days_since_first_outbreak {
+    hidden: yes
+    type: number
+  }
+
+  dimension: entity_level { type: number hidden:yes }
+  dimension: confirmed_new { type: number hidden:yes }
+  dimension: confirmed_new_per_million { type: number hidden:yes }
+  dimension: deaths_new { type: number hidden:yes }
+  dimension: deaths_new_per_million { type: number hidden:yes }
+  dimension: confirmed_running_total { type: number hidden:yes }
+  dimension: confirmed_running_total_per_million { type: number hidden:yes }
+  dimension: deaths_running_total { type: number hidden:yes }
+  dimension: deaths_running_total_per_million { type: number hidden:yes }
+  dimension: doubling_time_confirmed_cases_new_per_million { type: number hidden:yes }
+  dimension: doubling_time_confirmed_cases_rolling_total_per_million { type: number hidden:yes }
+  dimension: doubling_time_deaths_new_per_million { type: number hidden:yes }
+  dimension: doubling_time_deaths_rolling_total_per_million { type: number hidden:yes }
+
+  parameter: minimum_number_cases {
+    label: "Minimum Number of cases (X)"
+    description: "Modify your analysis to start counting days since outbreak to start with a minumum of X cases."
+    type: number
+    default_value: "1"
+  }
+
+  dimension_group: outbreak_start {
+    hidden: yes
+    type: time
+    timeframes: [raw, date]
+    sql:
+      (
+        SELECT CAST(MIN(foobar.measurement_date) AS TIMESTAMP)
+        FROM ${kpis_by_entity_by_date.SQL_TABLE_NAME} as foobar
+        WHERE foobar.confirmed_running_total >=  {% parameter minimum_number_cases %}
+        AND ${TABLE}.entity = foobar.entity
+      )
+      ;;
+  }
+
+  dimension: days_since_first_outbreaks {
+    label: "Days Since (X) Cases"
+    type:  number
+    sql: date_diff(${measurement_date},${outbreak_start_date},  day) + 1 ;;
+  }
+
+  parameter: metric_type {
+    type: string
+    default_value: "new"
+    allowed_value: {
+      label: "New"
+      value: "new"
+    }
+    allowed_value: {
+      label: "Running Total"
+      value: "running_total"
+    }
+  }
+
+  parameter: metric_value {
+    type: string
+    default_value: "per_million_people"
+    allowed_value: {
+      label: "Actual Value"
+      value: "actual_value"
+    }
+    allowed_value: {
+      label: "Per Million People"
+      value: "per_million_people"
+    }
+    allowed_value: {
+      label: "Days to Double"
+      value: "days_to_double"
+    }
+  }
+
+  parameter: metric {
+    type: string
+    default_value: "confirmed_cases"
+    allowed_value: {
+      label: "Confirmed_Cases"
+      value: "confirmed_cases"
+    }
+    allowed_value: {
+      label: "Deaths"
+      value: "deaths"
+    }
+  }
+
+  dimension: concat_parameters {
+    type: string
+    # hidden: yes
+    sql: concat({% parameter metric_type %},'|',{% parameter metric_value %},'|',{% parameter metric %}) ;;
+  }
+
+  measure: kpi_to_select {
+    label: " Dynamic KPI"
+    type: number
+    sql:
+    CASE
+      WHEN ${concat_parameters} = 'new|actual_value|confirmed_cases'                  THEN ${sum_confirmed_new}
+      WHEN ${concat_parameters} = 'new|actual_value|deaths'                           THEN ${sum_deaths_new}
+      WHEN ${concat_parameters} = 'new|per_million_people|confirmed_cases'            THEN ${sum_confirmed_new_per_million}
+      WHEN ${concat_parameters} = 'new|per_million_people|deaths'                     THEN ${sum_deaths_new_per_million}
+      WHEN ${concat_parameters} = 'new|days_to_double|confirmed_cases'                THEN ${sum_doubling_time_confirmed_cases_new_per_million}
+      WHEN ${concat_parameters} = 'new|days_to_double|deaths'                         THEN ${sum_doubling_time_deaths_new_per_million}
+      WHEN ${concat_parameters} = 'running_total|actual_value|confirmed_cases'        THEN ${sum_confirmed_running_total}
+      WHEN ${concat_parameters} = 'running_total|actual_value|deaths'                 THEN ${sum_deaths_running_total}
+      WHEN ${concat_parameters} = 'running_total|per_million_people|confirmed_cases'  THEN ${sum_confirmed_running_total_per_million}
+      WHEN ${concat_parameters} = 'running_total|per_million_people|deaths'           THEN ${sum_deaths_running_total_per_million}
+      WHEN ${concat_parameters} = 'running_total|days_to_double|confirmed_cases'      THEN ${sum_doubling_time_confirmed_cases_rolling_total_per_million}
+      WHEN ${concat_parameters} = 'running_total|days_to_double|deaths'               THEN ${sum_doubling_time_deaths_rolling_total_per_million}
+    END
+    ;;
+    value_format_name: decimal_1
+  }
+
+#   sql:
+#   {% if    metric_type._parameter_value == 'new' AND metric_value._parameter_value == 'actual_value' AND metric._parameter_value == 'confirmed_cases' %} ${sum_confirmed_new}
+#   {% elsif metric_type._parameter_value == 'new' AND metric_value._parameter_value == 'actual_value' AND metric._parameter_value == 'deaths' %} ${sum_deaths_new}
+#   {% elsif metric_type._parameter_value == 'new' AND metric_value._parameter_value == 'per_million_people' AND metric._parameter_value == 'confirmed_cases' %} ${sum_confirmed_new_per_million}
+#   {% elsif metric_type._parameter_value == 'new' AND metric_value._parameter_value == 'per_million_people' AND metric._parameter_value == 'deaths' %} ${sum_deaths_new_per_million}
+#   {% elsif metric_type._parameter_value == 'new' AND metric_value._parameter_value == 'days_to_double' AND metric._parameter_value == 'confirmed_cases' %} ${sum_doubling_time_confirmed_cases_new_per_million}
+#   {% elsif metric_type._parameter_value == 'new' AND metric_value._parameter_value == 'days_to_double' AND metric._parameter_value == 'deaths' %} ${sum_doubling_time_deaths_new_per_million}
+#   {% elsif metric_type._parameter_value == 'running_total' AND metric_value._parameter_value == 'actual_value' AND metric._parameter_value == 'confirmed_cases' %} ${sum_confirmed_running_total}
+#   {% elsif metric_type._parameter_value == 'running_total' AND metric_value._parameter_value == 'actual_value' AND metric._parameter_value == 'deaths' %} ${sum_deaths_running_total}
+#   {% elsif metric_type._parameter_value == 'running_total' AND metric_value._parameter_value == 'per_million_people' AND metric._parameter_value == 'confirmed_cases' %} ${sum_confirmed_running_total_per_million}
+#   {% elsif metric_type._parameter_value == 'running_total' AND metric_value._parameter_value == 'per_million_people' AND metric._parameter_value == 'deaths' %} ${sum_deaths_running_total_per_million}
+#   {% elsif metric_type._parameter_value == 'running_total' AND metric_value._parameter_value == 'days_to_double' AND metric._parameter_value == 'confirmed_cases' %} ${sum_doubling_time_confirmed_cases_rolling_total_per_million}
+#   {% elsif metric_type._parameter_value == 'running_total' AND metric_value._parameter_value == 'days_to_double' AND metric._parameter_value == 'deaths' %} ${sum_doubling_time_deaths_rolling_total_per_million}
+#   {% endif %}
+#   ;;
+
+  measure: sum_confirmed_new {
+    label: "Confirmed (New)"
+    type: sum
+    sql: ${confirmed_new} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_confirmed_new_per_million {
+    label: "Confirmed (New) (Per Million)"
+    type: sum
+    sql: ${confirmed_new_per_million} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_deaths_new {
+    label: "Deaths (New)"
+    type: sum
+    sql: ${deaths_new} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_deaths_new_per_million {
+    label: "Deaths (New) (Per Million)"
+    type: sum
+    sql: ${deaths_new_per_million} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_confirmed_running_total {
+    label: "Confirmed (Running Total)"
+    type: sum
+    sql: ${confirmed_running_total} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_confirmed_running_total_per_million {
+    label: "Confirmed (Running Total) (Per Million)"
+    type: sum
+    sql: ${confirmed_running_total_per_million} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_deaths_running_total {
+    label: "Deaths (Running Total)"
+    type: sum
+    sql: ${deaths_running_total} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_deaths_running_total_per_million {
+    label: "Deaths (Running Total) (Per Million)"
+    type: sum
+    sql: ${deaths_running_total_per_million} ;;
+    value_format_name: decimal_0
+  }
+  measure: sum_doubling_time_confirmed_cases_new_per_million {
+    label: "Days to double Confirmed Cases (New)"
+    type: average
+    sql: ${doubling_time_confirmed_cases_new_per_million} ;;
+    value_format_name: decimal_1
+    html: {{rendered_value}} Day(s) ;;
+  }
+  measure: sum_doubling_time_confirmed_cases_rolling_total_per_million {
+    label: "Days to double Confirmed Cases (Rolling Total)"
+    type: average
+    sql: ${doubling_time_confirmed_cases_rolling_total_per_million} ;;
+    value_format_name: decimal_1
+    html: {{rendered_value}} Day(s) ;;
+  }
+  measure: sum_doubling_time_deaths_new_per_million {
+    label: "Days to double Deaths (New)"
+    type: average
+    sql: ${doubling_time_deaths_new_per_million} ;;
+    value_format_name: decimal_1
+    html: {{rendered_value}} Day(s) ;;
+  }
+  measure: sum_doubling_time_deaths_rolling_total_per_million {
+    label: "Days to double Deaths (Rolling Total)"
+    type: average
+    sql: ${doubling_time_deaths_rolling_total_per_million} ;;
+    value_format_name: decimal_1
+    html: {{rendered_value}} Day(s) ;;
+  }
+}
+
+
+
+#
+
+# }
+#

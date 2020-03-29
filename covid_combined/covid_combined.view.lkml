@@ -15,10 +15,10 @@ view: jhu_sample_county_level_final {
         measurement_date,
 
         confirmed as confirmed_cumulative,
-        confirmed - coalesce(LAG(confirmed, 1) OVER (PARTITION BY combined_key ORDER BY measurement_date ASC),0) as confirmed_new_cases,
+        confirmed - coalesce(LAG(confirmed, 1) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,'')) ORDER BY measurement_date ASC),0) as confirmed_new_cases,
 
         deaths as deaths_cumulative,
-        deaths - coalesce(LAG(deaths, 1) OVER (PARTITION BY combined_key  ORDER BY measurement_date ASC),0) as deaths_new_cases
+        deaths - coalesce(LAG(deaths, 1) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,''))  ORDER BY measurement_date ASC),0) as deaths_new_cases
 
     FROM `lookerdata.covid19.combined_covid_data` ;;
 
@@ -135,6 +135,18 @@ view: jhu_sample_county_level_final {
     drill_fields: [fips]
   }
 
+  dimension: county_full {
+    group_label: "Location"
+    label: "County (Full)"
+    sql: concat(coalesce(concat(${county},', '),''),coalesce(concat(${province_state},', ')),${country_region}) ;;
+  }
+
+  dimension: state_full {
+    group_label: "Location"
+    label: "State (Full)"
+    sql: concat(coalesce(concat(${province_state},', ')),${country_region}) ;;
+  }
+
 #### KPIs ####
 
   dimension: confirmed_cumulative {
@@ -227,25 +239,25 @@ view: jhu_sample_county_level_final {
   dimension: days_since_first_outbreak_county {
     hidden: yes
     type:  number
-    sql: date_diff(${measurement_raw},${county_outbreak_start_date},  day);;
+    sql: date_diff(${measurement_raw},${county_outbreak_start_date},  day) + 1 ;;
   }
 
   dimension: days_since_first_outbreak_state {
     hidden: yes
     type:  number
-    sql: date_diff(${measurement_raw},${state_outbreak_start_date},  day);;
+    sql: date_diff(${measurement_raw},${state_outbreak_start_date},  day) + 1 ;;
   }
 
   dimension: days_since_first_outbreak_country {
     hidden: yes
     type:  number
-    sql: date_diff(${measurement_raw},${country_outbreak_start_date},  day);;
+    sql: date_diff(${measurement_raw},${country_outbreak_start_date},  day) + 1 ;;
   }
 
   dimension: days_since_first_outbreak_system {
     hidden: yes
     type:  number
-    sql: date_diff(${measurement_raw},${system_outbreak_start_date},  day);;
+    sql: date_diff(${measurement_raw},${system_outbreak_start_date},  day) + 1 ;;
   }
 
   dimension: days_since_first_outbreak {
@@ -258,6 +270,7 @@ view: jhu_sample_county_level_final {
           {% else %}  ${days_since_first_outbreak_system}
           {% endif %} ;;
   }
+
 
 ####################
 #### Measures ####
