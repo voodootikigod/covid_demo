@@ -222,7 +222,7 @@ view: jhu_sample_county_level_final {
 
 
   dimension: is_max_date {
-    hidden: yes
+    # hidden: yes
     type: yesno
     sql: ${measurement_raw} = ${max_date_covid.max_date_raw} ;;
   }
@@ -307,11 +307,6 @@ view: jhu_sample_county_level_final {
           {% else %}  ${days_since_first_outbreak_system}
           {% endif %} ;;
   }
-
-#   dimension: days_since_max_date {
-#     type: number
-#     sql: date_diff(${measurement_raw},${county_outbreak_start_date},  day) + 1 ;;
-#   }
 
 
 ####################

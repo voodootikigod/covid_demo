@@ -50,14 +50,6 @@ explore: jhu_sample_county_level_final {
     AND ${jhu_sample_county_level_final.pre_pk} = ${prior_days_cases_covid.pre_pk};;
   }
 
-## Forecasting ##
-
-  join: day_counter_90_days {
-    fields: []
-    relationship: one_to_one
-    sql_on: 1 = 1  ;;
-  }
-
 ## Add in state & country region & population ##
 
   join: population_by_county_state_country {
@@ -119,8 +111,15 @@ explore: kpis_by_entity_by_date {
           {% else %}  1 = 1
           {% endif %}
   ;;
-
 }
+
+explore: covid_forecasting {
+  group_label: "*COVID 19"
+  label: "COVID Apps - Forecasting"
+}
+
+explore: covid_forecasting_results {}
+
 
 
 ############ Census ############

@@ -485,26 +485,135 @@ view: prior_days_cases_covid {
 ### Forecasting
 ####################
 
-view: day_counter_90_days {
-  sql_table_name: `lookerdata.covid19.day_counter_90_days` ;;
-
-  dimension: number {
-    hidden: yes
-    primary_key: yes
-    sql: ${TABLE}.number ;;
+view: growth_rate_by_pk {
+  derived_table: {
+    datagroup_trigger: covid_data
+    explore_source: jhu_sample_county_level_final {
+      column: fips {}
+      column: county {}
+      column: province_state {}
+      column: country_raw {}
+      column: lat {}
+      column: long {}
+      column: combined_key {}
+      column: confirmed_running_total {}
+      column: deaths_running_total {}
+      column: seven_day_average_change_rate_confirmed_cases_new { field: prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_new }
+      column: seven_day_average_change_rate_confirmed_cases_running_total { field: prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_running_total }
+      column: seven_day_average_change_rate_deaths_new { field: prior_days_cases_covid.seven_day_average_change_rate_deaths_new }
+      column: seven_day_average_change_rate_deaths_running_total { field: prior_days_cases_covid.seven_day_average_change_rate_deaths_running_total }
+      filters: {
+        field: jhu_sample_county_level_final.is_max_date
+        value: "Yes"
+      }
+    }
   }
 }
 
-view: forecasting {
+view: covid_forecasting {
   derived_table: {
+    publish_as_db_view: yes
+    datagroup_trigger: covid_data
     sql:
-      SELECT *
-      FROM ${jhu_sample_county_level_final.SQL_TABLE_NAME}
-
+    SELECT
+      c.fips,
+      c.county,
+      c.province_state,
+      c.country_raw as country_region,
+      c.lat,
+      c.long,
+      c.combined_key,
+      a.number,
+      date_add(cast(b.max_date as date), INTERVAL number day) as forecast_date,
+      c.seven_day_average_change_rate_confirmed_cases_new,
+      c.seven_day_average_change_rate_confirmed_cases_running_total,
+      c.seven_day_average_change_rate_deaths_new,
+      c.seven_day_average_change_rate_deaths_running_total,
+      c.confirmed_running_total,
+      c.deaths_running_total,
+    FROM `lookerdata.covid19.day_counter_90_days` a
+    CROSS JOIN ${max_date_covid.SQL_TABLE_NAME} b
+    CROSS JOIN ${growth_rate_by_pk.SQL_TABLE_NAME} c
+    WHERE a.number < 31
     ;;
   }
+  # sql_table_name: `lookerdata.covid19.day_counter_90_days` ;;
+
+#   dimension: pk {hidden: yes primary_key: yes sql: concat(${pre_pk},${number});;}
+#   dimension: pre_pk {hidden: yes}
+  dimension: fips {}
+  dimension: county {}
+  dimension: province_state {}
+  dimension: country_region {}
+  dimension: lat {}
+  dimension: long {}
+  dimension: combined_key {}
+  dimension: number {hidden: yes type:number}
+#   dimension: seven_day_average_change_rate_confirmed_cases_new {hidden:yes type:number}
+  dimension: seven_day_average_change_rate_confirmed_cases_running_total {type:number}
+#   dimension: seven_day_average_change_rate_deaths_new {hidden:yes type:number}
+  dimension: seven_day_average_change_rate_deaths_running_total { type:number}
+#   dimension: confirmed_new_option_2 {hidden:yes type:number}
+  dimension: confirmed_running_total {type:number}
+#   dimension: deaths_new_option_2 {hidden:yes type:number}
+  dimension: deaths_running_total { type:number}
+  dimension: dynamic_seven_day_average_change_rate_confirmed_cases_running_total {
+    type: number
+    sql: ${seven_day_average_change_rate_confirmed_cases_running_total} - (${number} / 31 * 0.9 * ${seven_day_average_change_rate_confirmed_cases_running_total}) ;;
+  }
+  dimension: dynamic_seven_day_average_change_rate_deaths_running_total {
+    type: number
+    sql: ${seven_day_average_change_rate_deaths_running_total} - (${number} / 31 * 0.9 * ${seven_day_average_change_rate_deaths_running_total}) ;;
+  }
+  dimension: confirmed_cases_rolling_total_forecasting {
+    type: number
+    sql:1.0 * ${confirmed_running_total} * POW(cast((1 + round(${dynamic_seven_day_average_change_rate_confirmed_cases_running_total},3)) as numeric),${number}) ;;
+    value_format_name: decimal_0
+  }
+  dimension: deaths_rolling_total_forecasting {
+    type: number
+    sql:1.0 * ${deaths_running_total} * POW(cast((1 + round(${dynamic_seven_day_average_change_rate_deaths_running_total},3)) as numeric),${number}) ;;
+    value_format_name: decimal_0
+  }
+  dimension: forecasted_new_confirmed_cases {
+    type: number
+    sql: ${confirmed_running_total} * ${dynamic_seven_day_average_change_rate_confirmed_cases_running_total} ;;
+  }
+  dimension: forecasted_new_deaths {
+    type: number
+    sql: ${deaths_running_total} * ${dynamic_seven_day_average_change_rate_deaths_running_total} ;;
+  }
+  dimension_group: forecast {
+    type: time
+    timeframes: [
+      raw,
+      date
+    ]
+    sql: cast(${TABLE}.forecast_date as timestamp) ;;
+  }
 }
 
+view: covid_forecasting_results {
+  derived_table: {
+    publish_as_db_view: yes
+    datagroup_trigger: covid_data
+    explore_source: covid_forecasting {
+      column: fips {}
+      column: county {}
+      column: province_state {}
+      column: country_region {}
+      column: lat {}
+      column: long {}
+      column: combined_key {}
+      column: forecast_date {}
+      column: confirmed_running_total {}
+      column: deaths_running_total {}
+      column: forecasted_new_confirmed_cases {}
+      column: forecasted_new_deaths {}
+    }
+  }
+  dimension: fips {}
+}
 
 ####################
 ### Compare Geographies
@@ -865,7 +974,82 @@ view: kpis_by_entity_by_date {
 
 
 
-#
+#   measure: start_confirmed_cases {
+#     type: sum
+#     sql: ${confirmed_running_total} ;;
+#     filters: {
+#       field: number
+#       value: "1"
+#     }
+#   }
+#   measure: sum_forecasted_new_confirmed_cases {
+#     type: sum
+#     sql: ${forecasted_new_confirmed_cases} ;;
+#     value_format_name: decimal_0
+#   }
+#   measure: forecasted_confirmed_cases_running_total {
+#     type: running_total
+#     sql: ${start_confirmed_cases} + ${sum_forecasted_new_confirmed_cases} ;;
+#     value_format_name: decimal_0
+#   }
+#   measure: start_deaths {
+#     type: sum
+#     sql: ${deaths_running_total} ;;
+#     filters: {
+#       field: number
+#       value: "1"
+#     }
+#   }
+#   measure: sum_forecasted_new_deaths {
+#     type: sum
+#     sql: ${forecasted_new_deaths} ;;
+#     value_format_name: decimal_0
+#   }
+#   measure: forecasted_deaths_running_total {
+#     type: running_total
+#     sql: ${start_deaths} + ${sum_forecasted_new_deaths} ;;
+#     value_format_name: decimal_0
+#   }
 
+
+
+#   measure: sum_number {type: sum hidden:yes sql: ${number} ;;}
+# #   measure: sum_seven_day_average_change_rate_confirmed_cases_new {type: average hidden:yes sql: ${seven_day_average_change_rate_confirmed_cases_new} ;;}
+#   measure: sum_seven_day_average_change_rate_confirmed_cases_running_total {type: sum  sql: ${dynamic_seven_day_average_change_rate_confirmed_cases_running_total} ;;}
+# #   measure: sum_seven_day_average_change_rate_deaths_new {type: average hidden:yes sql: ${seven_day_average_change_rate_deaths_new} ;;}
+#   measure: sum_seven_day_average_change_rate_deaths_running_total {type: sum  sql: ${dynamic_seven_day_average_change_rate_deaths_running_total} ;;}
+# #   measure: sum_confirmed_new_option_2 {type: average hidden:yes sql: ${confirmed_new_option_2} ;;}
+#   measure: sum_confirmed_running_total {type: sum  sql: ${confirmed_running_total} ;;}
+# #   measure: sum_deaths_new_option_2 {type: average hidden:yes sql: ${deaths_new_option_2} ;;}
+#   measure: sum_deaths_running_total {type: sum  sql: ${deaths_running_total} ;;}
+# #   measure: confirmed_cases_new_forecasting {
+# #     type: number
+# #     sql: 1.0 * ${sum_confirmed_new_option_2} * POW((1 + ${sum_seven_day_average_change_rate_confirmed_cases_new}),${sum_number}) ;;
+# #     value_format_name: decimal_0
+# #   }
+#   measure: confirmed_cases_rolling_total_forecasting {
+#     type: number
+#     sql: 1.0 * ${sum_confirmed_running_total} * POW(cast((1 + round(${sum_seven_day_average_change_rate_confirmed_cases_running_total},3)) as numeric),${sum_number}) ;;
+#     value_format_name: decimal_0
+#   }
+# #   measure: deaths_new_forecasting {
+# #     type: number
+# #     sql: 1.0 * ${sum_deaths_new_option_2} * POW((1 + ${sum_seven_day_average_change_rate_deaths_new}),${sum_number}) ;;
+# #     value_format_name: decimal_0
+# #   }
+#   measure: deaths_rolling_total_forecasting {
+#     type: number
+#     sql: 1.0 * ${sum_deaths_running_total} * POW((1 + ${sum_seven_day_average_change_rate_deaths_running_total}),${sum_number}) ;;
+#     value_format_name: decimal_0
+#   }
 # }
+
+# view: forecasting {
+#   derived_table: {
+#     sql:
+#       SELECT *
+#       FROM ${jhu_sample_county_level_final.SQL_TABLE_NAME}
 #
+#     ;;
+#   }
+# }
