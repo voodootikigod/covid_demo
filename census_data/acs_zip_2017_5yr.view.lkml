@@ -9,14 +9,14 @@ view: acs_zip_codes_2017_5yr {
     type: zipcode
   }
 
-  measure: population_density {
-    description: "Resident per Square Mile"
-    # view_label: "Demographic Populations"
-    label: "Density (People per Sq Mi)"
-    type: number
-    sql: 1.0*${total_pop}/nullif(${us_zipcode_boundaries.total_area_land_meters}/2590000,0);;
-    value_format_name: decimal_1
-  }
+#   measure: population_density {
+#     description: "Resident per Square Mile"
+#     # view_label: "Demographic Populations"
+#     label: "Density (People per Sq Mi)"
+#     type: number
+#     sql: 1.0*${total_pop}/nullif(${us_zipcode_boundaries.total_area_land_meters}/2590000,0);;
+#     value_format_name: decimal_1
+#   }
 
 }
 

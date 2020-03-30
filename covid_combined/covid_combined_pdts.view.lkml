@@ -1,3 +1,7 @@
+####################
+### Max Dates
+####################
+
 view: max_date_covid {
   derived_table: {
     datagroup_trigger: covid_data
@@ -35,7 +39,65 @@ view: max_date_tracking_project {
 }
 
 ####################
-### Advanced Analytics
+### Ranks
+####################
+
+view: country_rank {
+  derived_table: {
+    explore_source: jhu_sample_county_level_final {
+      bind_all_filters: yes
+      column: country_raw {}
+      column: confirmed_running_total {}
+      derived_column: rank {
+        sql: row_number() OVER (PARTITION BY 'X' ORDER BY confirmed_running_total desc) ;;
+      }
+    }
+  }
+  dimension: country_raw { primary_key: yes hidden: yes }
+  dimension: rank { hidden: yes type: number }
+}
+
+view: state_rank {
+  derived_table: {
+    explore_source: jhu_sample_county_level_final {
+      bind_all_filters: yes
+      column: province_state {}
+      column: confirmed_running_total {}
+      derived_column: rank {
+        sql: row_number() OVER (PARTITION BY 'X' ORDER BY confirmed_running_total desc) ;;
+      }
+      filters: {
+        field: jhu_sample_county_level_final.country_raw
+        value: "US"
+      }
+    }
+  }
+  dimension: province_state { primary_key: yes hidden: yes }
+  dimension: rank { hidden: yes type: number }
+}
+
+view: fips_rank {
+  derived_table: {
+    explore_source: jhu_sample_county_level_final {
+      bind_all_filters: yes
+      column: fips {}
+      column: confirmed_running_total {}
+      derived_column: rank {
+        sql: row_number() OVER (PARTITION BY 'X' ORDER BY confirmed_running_total desc) ;;
+      }
+      filters: {
+        field: jhu_sample_county_level_final.country_raw
+        value: "US"
+      }
+    }
+  }
+  dimension: fips { primary_key: yes hidden: yes }
+  dimension: rank { hidden: yes type: number }
+}
+
+
+####################
+### Growth Rate / Days to Double
 ####################
 
 view: prior_days_cases_covid {

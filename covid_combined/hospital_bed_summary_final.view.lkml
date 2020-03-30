@@ -154,7 +154,7 @@ view: hospital_bed_summary_final {
   }
 
   dimension: estimated_percent_of_covid_cases_of_county_dim {
-    # hidden: yes
+    hidden: yes
     type: number
     sql: 1.0*${num_licensed_beds}/nullif(${county_num_licensed_beds},0) ;;
   }
@@ -201,7 +201,7 @@ view: hospital_bed_summary_final {
   }
 
   measure: estimated_percent_of_covid_cases_of_county {
-    # hidden: yes
+    hidden: yes
     type: number
     sql:
       {% if

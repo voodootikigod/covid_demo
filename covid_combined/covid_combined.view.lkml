@@ -201,27 +201,6 @@ view: jhu_sample_county_level_final {
 
 #### Location ####
 
-  dimension: country_region {
-    group_label: "Location"
-    label: "Country"
-    type: string
-    map_layer_name: countries
-    sql:
-      case
-        when ${TABLE}.country_region = 'Korea, South' then 'South Korea'
-        when ${TABLE}.country_region = 'Tanzania' then 'United Republic of Tanzania'
-        when ${TABLE}.country_region = 'Congo (Kinshasa)' then 'Democratic Republic of the Congo'
-        when ${TABLE}.country_region = 'Congo (Brazzaville)' then 'Republic of the Congo'
-        when ${TABLE}.country_region = 'Czechia' then 'Czech Republic'
-        when ${TABLE}.country_region = 'Czechia' then 'Czech Republic'
-        when ${TABLE}.country_region = 'Serbia' then 'Republic of Serbia'
-        when ${TABLE}.country_region = 'North Macedonia' then 'Macedonia'
-        else ${TABLE}.country_region
-        -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
-      end ;;
-    drill_fields: [province_state]
-  }
-
   dimension: country_raw {
     hidden: yes
     type: string
@@ -232,12 +211,6 @@ view: jhu_sample_county_level_final {
     hidden: yes
     type: string
     sql: ${TABLE}.county ;;
-  }
-
-  dimension: county_non_null {
-    hidden: yes
-    type: string
-    sql: coalesce(${county},${province_state},${country_region}) ;;
   }
 
   dimension: lat {
@@ -268,33 +241,12 @@ view: jhu_sample_county_level_final {
     html: {{ county._value }} ;;
   }
 
-  dimension: fips_as_string {
-    hidden: yes
-    type: string
-    sql: CASE WHEN LENGTH(cast(${fips} as string)) = 4 THEN CONCAT('0',${fips})
-    ELSE cast(${fips} as string) END;;
-  }
-
   dimension: province_state {
     group_label: "Location"
     label: "State"
     type: string
     sql: ${TABLE}.province_state ;;
     drill_fields: [fips]
-  }
-
-  dimension: county_full {
-    hidden: yes
-    group_label: "Location"
-    label: "County (Full)"
-    sql: concat(coalesce(concat(${county},', '),''),coalesce(concat(${province_state},', ')),${country_region}) ;;
-  }
-
-  dimension: state_full {
-    hidden: yes
-    group_label: "Location"
-    label: "State (Full)"
-    sql: concat(coalesce(concat(${province_state},', ')),${country_region}) ;;
   }
 
 #### KPIs ####
@@ -334,6 +286,104 @@ view: jhu_sample_county_level_final {
 #### Derived Dimensions ####
 ####################
 
+#### Location ####
+
+  dimension: country_region {
+    group_label: "Location"
+    label: "Country"
+    type: string
+    map_layer_name: countries
+    sql:
+      case
+        when ${TABLE}.country_region = 'Korea, South' then 'South Korea'
+        when ${TABLE}.country_region = 'Tanzania' then 'United Republic of Tanzania'
+        when ${TABLE}.country_region = 'Congo (Kinshasa)' then 'Democratic Republic of the Congo'
+        when ${TABLE}.country_region = 'Congo (Brazzaville)' then 'Republic of the Congo'
+        when ${TABLE}.country_region = 'Czechia' then 'Czech Republic'
+        when ${TABLE}.country_region = 'Czechia' then 'Czech Republic'
+        when ${TABLE}.country_region = 'Serbia' then 'Republic of Serbia'
+        when ${TABLE}.country_region = 'North Macedonia' then 'Macedonia'
+        else ${TABLE}.country_region
+        -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
+      end ;;
+    drill_fields: [province_state]
+  }
+
+  dimension: county_non_null {
+    hidden: yes
+    type: string
+    sql: coalesce(${county},${province_state},${country_region}) ;;
+  }
+
+  dimension: county_full {
+    hidden: yes
+    group_label: "Location"
+    label: "County (Full)"
+    sql: concat(coalesce(concat(${county},', '),''),coalesce(concat(${province_state},', ')),${country_region}) ;;
+  }
+
+  dimension: state_full {
+    hidden: yes
+    group_label: "Location"
+    label: "State (Full)"
+    sql: concat(coalesce(concat(${province_state},', ')),${country_region}) ;;
+  }
+
+  dimension: fips_as_string {
+    hidden: yes
+    type: string
+    sql: CASE WHEN LENGTH(cast(${fips} as string)) = 4 THEN CONCAT('0',${fips})
+      ELSE cast(${fips} as string) END;;
+  }
+
+#### Location Rank ####
+
+  dimension: country_ordered {
+    group_label: "Location"
+    label: "Country (Ordered)"
+    sql: concat(cast(${country_rank.rank} as string),'-',${country_raw} ;;
+    html: {{ country_region._value }} ;;
+  }
+
+  dimension: state_ordered {
+    group_label: "Location"
+    label: "State (Ordered)"
+    sql: concat(cast(${state_rank.rank} as string),'-',${province_state} ;;
+    html: {{ province_state._value }} ;;
+  }
+
+  dimension: fips_ordered {
+    group_label: "Location"
+    label: "County (Ordered)"
+    sql: concat(cast(${fips_rank.rank} as string),'-',${fips} ;;
+    html: {{ county._value }} ;;
+  }
+
+  parameter: show_top_x_values {
+    type: number
+    default_value: "10"
+  }
+
+  dimension: country_top_x {
+    group_label: "Location"
+    label: "Country (Show Top X Values)"
+    sql: case when ${country_rank.rank} <= {% parameter show_top_x_values %} then ${country_region} else ' Other' end ;;
+  }
+
+  dimension: state_top_x {
+    group_label: "Location"
+    label: "State (Show Top X Values)"
+    sql: case when ${state_rank.rank} <= {% parameter show_top_x_values %} then ${province_state} else ' Other' end ;;
+  }
+
+  dimension: county_top_x {
+    group_label: "Location"
+    label: "County (Show Top X Values)"
+    sql: case when ${fips_rank.rank} <= {% parameter show_top_x_values %} then ${county} else ' Other' end ;;
+  }
+
+#### Forecasted ####
+
   parameter: allow_forecasted_values {
     type: unquoted
     default_value: "no"
@@ -346,8 +396,6 @@ view: jhu_sample_county_level_final {
       value: "yes"
     }
   }
-
-
 
 #   parameter: location_selector {
 #     type: unquoted
@@ -376,6 +424,7 @@ view: jhu_sample_county_level_final {
 #         {% endif %} ;;
 #   }
 
+#### Max Date ####
 
   dimension: is_max_date {
     # hidden: yes
@@ -387,6 +436,8 @@ view: jhu_sample_county_level_final {
     type:  number
     sql: date_diff(${measurement_raw},${max_date_covid.max_date_raw},day) ;;
   }
+
+#### Days since X Case ####
 
   parameter: minimum_number_cases {
     label: "Minimum Number of cases (X)"
@@ -529,7 +580,7 @@ view: jhu_sample_county_level_final {
     label: "Confirmed Cases (New)"
     type: number
     sql:
-      {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${confirmed_new_option_1}
+      {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${confirmed_new_option_1}
       {% else %}  ${confirmed_new_option_2}
       {% endif %} ;;
   }
@@ -564,7 +615,7 @@ view: jhu_sample_county_level_final {
     label: "Confirmed Cases (Running Total)"
     type: number
     sql:
-          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${confirmed_option_1}
+          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${confirmed_option_1}
           {% else %}  ${confirmed_option_2}
           {% endif %} ;;
   }
@@ -623,7 +674,7 @@ view: jhu_sample_county_level_final {
     label: "Deaths (New)"
     type: number
     sql:
-      {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${deaths_new_option_1}
+      {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${deaths_new_option_1}
       {% else %}  ${deaths_new_option_2}
       {% endif %} ;;
   }
@@ -658,7 +709,7 @@ view: jhu_sample_county_level_final {
     label: "Deaths (Running Total)"
     type: number
     sql:
-          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query %} ${deaths_option_1}
+          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${deaths_option_1}
           {% else %}  ${deaths_option_2}
           {% endif %} ;;
   }

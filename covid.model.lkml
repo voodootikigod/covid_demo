@@ -60,7 +60,27 @@ explore: jhu_sample_county_level_final {
     sql_on: 1 = 1  ;;
   }
 
-## Advanced Analytics ##
+## Rank ##
+
+  join: country_rank {
+    fields: []
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.country_raw} = ${country_rank.country_raw} ;;
+  }
+
+  join: state_rank {
+    fields: []
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.province_state} = ${state_rank.province_state} ;;
+  }
+
+  join: fips_rank {
+    fields: []
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.fips} = ${fips_rank.fips} ;;
+  }
+
+## Growth Rate / Days to Double ##
 
   join: prior_days_cases_covid {
     view_label: " COVID19"
@@ -73,7 +93,7 @@ explore: jhu_sample_county_level_final {
 ## Add in state & country region & population ##
 
   join: population_by_county_state_country {
-    view_label: " COVID19"
+    view_label: "Vulnerable Populations"
     relationship: many_to_one
     sql_on: ${jhu_sample_county_level_final.pre_pk} = ${population_by_county_state_country.pre_pk} ;;
   }
@@ -108,18 +128,18 @@ explore: jhu_sample_county_level_final {
     sql_on: ${zip_to_puma_v2.puma} = ${acs_puma_facts.puma} ;;
   }
 
-  join: acs_zip_codes_2017_5yr {
-    view_label: "Vulnerable Populations"
-    fields: [acs_zip_codes_2017_5yr.population_density]
-    relationship: many_to_one
-    sql_on: ${zip_to_puma_v2.zip}=${acs_zip_codes_2017_5yr.geo_id} ;;
-  }
+#   join: acs_zip_codes_2017_5yr {
+#     view_label: "Vulnerable Populations"
+#     # fields: [acs_zip_codes_2017_5yr.population_density]
+#     relationship: many_to_one
+#     sql_on: ${zip_to_puma_v2.zip}=${acs_zip_codes_2017_5yr.geo_id} ;;
+#   }
 
-  join: us_zipcode_boundaries {
-    fields: []
-    relationship: one_to_one
-    sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
-  }
+#   join: us_zipcode_boundaries {
+#     fields: []
+#     relationship: one_to_one
+#     sql_on: ${acs_zip_codes_2017_5yr.geo_id} = ${us_zipcode_boundaries.zip_code} ;;
+#   }
 
 ## Animation ##
 
