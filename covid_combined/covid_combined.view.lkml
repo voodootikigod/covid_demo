@@ -256,7 +256,7 @@ view: jhu_sample_county_level_final {
     drill_fields: [fips]
     link: {
       label: "{{ value }} - State Deep Dive"
-      url: "/dashboards-next/21?State={{ value }}"
+      url: "/dashboards/21?State={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
     link: {
@@ -413,7 +413,7 @@ view: jhu_sample_county_level_final {
     sql: case when ${state_rank.rank} <= {% parameter show_top_x_values %} then ${province_state} else ' Other' end ;;
     link: {
       label: "{{ value }} - State Deep Dive"
-      url: "/dashboards-next/21?State={{ value }}"
+      url: "/dashboards/21?State={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
 #     link: {
