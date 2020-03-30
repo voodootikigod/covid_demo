@@ -16,7 +16,7 @@ view: nyc_correction {
         deaths
 
     FROM `lookerdata.covid19.combined_covid_data`
-    WHERE NOT (province_state = 'New York' AND country_region = 'US' AND fips is null)
+    WHERE NOT (province_state = 'New York' AND country_region = 'US' AND fips = 123456789)
 
     UNION ALL
 
@@ -34,7 +34,7 @@ view: nyc_correction {
     FROM `lookerdata.covid19.combined_covid_data`
     WHERE province_state = 'New York'
     AND country_region = 'US'
-    AND fips is null
+    AND fips = 123456789
 
     UNION ALL
 
@@ -52,7 +52,7 @@ view: nyc_correction {
     FROM `lookerdata.covid19.combined_covid_data`
     WHERE province_state = 'New York'
     AND country_region = 'US'
-    AND fips is null
+    AND fips = 123456789
 
     UNION ALL
 
@@ -70,7 +70,7 @@ view: nyc_correction {
     FROM `lookerdata.covid19.combined_covid_data`
     WHERE province_state = 'New York'
     AND country_region = 'US'
-    AND fips is null
+    AND fips = 123456789
 
     UNION ALL
 
@@ -88,7 +88,7 @@ view: nyc_correction {
     FROM `lookerdata.covid19.combined_covid_data`
     WHERE province_state = 'New York'
     AND country_region = 'US'
-    AND fips is null
+    AND fips = 123456789
 
     UNION ALL
 
@@ -106,7 +106,7 @@ view: nyc_correction {
     FROM `lookerdata.covid19.combined_covid_data`
     WHERE province_state = 'New York'
     AND country_region = 'US'
-    AND fips is null
+    AND fips = 123456789
 
     ;;
   }
@@ -154,7 +154,7 @@ view: jhu_sample_county_level_final {
         round(deaths_running_total + SUM(forecasted_new_deaths) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,'')) ORDER BY forecast_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW),0) as deaths_cumulative,
         round(forecasted_new_deaths,0) as deaths_new_cases
 
-    FROM `lookerdata.covid19.forecasting_results_temp_table`
+    FROM `lookerdata.covid19.forecasting_results_temp_table3`
     WHERE cast(forecast_date as date) > (SELECT max(measurement_date) FROM `lookerdata.covid19.combined_covid_data`)
 
     ;;

@@ -549,7 +549,7 @@ view: prior_days_cases_covid {
 
 view: growth_rate_by_pk {
   derived_table: {
-    datagroup_trigger: covid_data
+    # datagroup_trigger: covid_data
     explore_source: jhu_sample_county_level_final {
       column: fips {}
       column: county {}
@@ -574,8 +574,8 @@ view: growth_rate_by_pk {
 
 view: covid_forecasting {
   derived_table: {
-    publish_as_db_view: yes
-    datagroup_trigger: covid_data
+    # publish_as_db_view: yes
+    # datagroup_trigger: covid_data
     sql:
     SELECT
       c.fips,
