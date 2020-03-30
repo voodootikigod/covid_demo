@@ -126,17 +126,12 @@ view: italy_province {
   dimension: nome_pro {
     type: string
     sql:  CASE
-            WHEN UPPER(${denominazione_provincia}) = "FORLÌ-CESENA"
-            THEN "FORLI'-CESENA"
-            WHEN UPPER(${denominazione_provincia}) = "MASSA CARRARA"
-            THEN "MASSA-CARRARA"
             WHEN UPPER(${denominazione_provincia}) = "IN FASE DI DEFINIZIONE/AGGIORNAMENTO"
             THEN "Not Specified"
-            ELSE UPPER(${denominazione_provincia})
+            ELSE ${denominazione_provincia}
           END
              ;;
     map_layer_name: province_italiane
-    html: {{ denominazione_provincia._value }} ;;
     label: "Province Name"
     description: "The name of the province in Italy, (IT: Denominazione Provincia)"
   }

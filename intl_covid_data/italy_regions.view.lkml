@@ -191,16 +191,17 @@ view: italy_regions {
 
   dimension: nome_reg {
     type: string
-    sql:
-      CASE
-        WHEN UPPER(${denominazione_regione}) = "EMILIA ROMAGNA"
-        THEN "EMILIA-ROMAGNA"
-        WHEN ${denominazione_regione} in ("P.A. Trento", "P.A. Bolzano")
-        THEN "TRENTINO-ALTO ADIGE/SUDTIROL"
-        ELSE UPPER(${denominazione_regione})
-      END ;;
+    sql: CASE
+          WHEN ${denominazione_regione} = 'P.A. Bolzano'
+          THEN 'Bolzano'
+          WHEN ${denominazione_regione} = 'P.A. Trento'
+          THEN 'Trento'
+          WHEN ${denominazione_regione} = 'Emilia Romagna'
+          THEN 'Emilia-Romagna'
+          ELSE ${denominazione_regione}
+        END
+          ;;
     map_layer_name: regioni_italiani
-#     html: {{ denominazione_regione._value }} ;;
     label: "Region Name"
     description: "The name of the region in Italy, (IT: Denominazione Regione)"
     drill_fields: [italy_provinces.denominazione_provincia]
