@@ -953,7 +953,22 @@ view: kpis_by_entity_by_date {
 
   UNION ALL
 
-  SELECT 'Country' as entity_level, *
+  SELECT 'Country' as entity_level,
+   country_region as entity
+  , measurement_date
+  , days_since_first_outbreak
+  , confirmed_new
+  , confirmed_new_per_million
+  , deaths_new
+  , deaths_new_per_million
+  , confirmed_running_total
+  , confirmed_running_total_per_million
+  , deaths_running_total
+  , deaths_running_total_per_million
+  , doubling_time_confirmed_cases_new_per_million
+  , doubling_time_confirmed_cases_rolling_total_per_million
+  , doubling_time_deaths_new_per_million
+  , doubling_time_deaths_rolling_total_per_million
   FROM ${kpis_by_country_by_date.SQL_TABLE_NAME}
 
     ;;
