@@ -60,7 +60,12 @@ explore: jhu_sample_county_level_final {
     sql_on: 1 = 1  ;;
   }
 
-## State URL ##
+## URL Links to country / state websites ##
+
+  join: country_url_code_final {
+    relationship: many_to_one
+    sql_on: ${jhu_sample_county_level_final.country_region} = ${country_url_code_final.country} ;;
+  }
 
  join: state_url_code_final {
   relationship: many_to_one
