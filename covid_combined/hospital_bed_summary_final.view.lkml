@@ -163,6 +163,18 @@ view: hospital_bed_summary_final {
 #### Derived Dimensions ####
 ####################
 
+  dimension: num_icu_beds_available {
+    hidden: yes
+    type: number
+    sql: ${num_icu_beds} * ${bed_utilization} ;;
+  }
+
+  dimension: num_staffed_beds_available {
+    hidden: yes
+    type: number
+    sql: ${num_staffed_beds} * ${bed_utilization} ;;
+  }
+
 ####################
 #### Measures ####
 ####################
@@ -183,9 +195,25 @@ view: hospital_bed_summary_final {
 
   measure: sum_num_staffed_beds {
     group_label: "Hospital Capacity"
-    label: "Count Staff Beds"
+    label: "Count Staffed Beds"
     type: sum
     sql: ${num_staffed_beds} ;;
+  }
+
+  measure: sum_num_icu_beds_available {
+    group_label: "Hospital Capacity"
+    label: "Count ICU Beds Typically Available"
+    type: sum
+    sql: ${num_icu_beds_available} ;;
+    value_format_name: decimal_0
+  }
+
+  measure: sum_num_staffed_beds_available {
+    group_label: "Hospital Capacity"
+    label: "Count Staffed Beds Typically Available"
+    type: sum
+    sql: ${num_staffed_beds_available} ;;
+    value_format_name: decimal_0
   }
 
   measure: sum_county_num_licensed_beds {

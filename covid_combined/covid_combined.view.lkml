@@ -214,8 +214,13 @@ view: jhu_sample_county_level_final {
     sql: ${TABLE}.county ;;
     link: {
       label: "{{ value }} - County Deep Dive"
-      url: "/dashboards-next/22?County={{ value }}&State={{ province_state._value }}"
+      url: "/dashboards/22?County={{ value }}&State={{ province_state._value }}"
       icon_url: "https://looker.com/favicon.ico"
+    }
+    link: {
+      label: "{{ value }} - News Search"
+      url: "https://news.google.com/search?q={{ value }}%20county%20{{ province_state._value}}%20covid"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.news.google.com"
     }
   }
 
@@ -263,6 +268,11 @@ view: jhu_sample_county_level_final {
       label: "{{ value }} - COVID19 Website"
       url: "{{ state_url_code_final.url._value }}"
       icon_url: "http://google.com/favicon.ico"
+    }
+    link: {
+      label: "{{ value }} - News Search"
+      url: "https://news.google.com/search?q={{ value }}%20covid"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.news.google.com"
     }
   }
 
@@ -326,13 +336,18 @@ view: jhu_sample_county_level_final {
     drill_fields: [province_state]
     link: {
       label: "{{ value }} - Country Deep Dive"
-      url: "/dashboards-next/23?Country={{ value }}"
+      url: "/dashboards/23?Country={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
     link: {
       label: "{{ value }} - COVID19 Website"
       url: "{{ country_url_code_final.url._value }}"
       icon_url: "http://google.com/favicon.ico"
+    }
+    link: {
+      label: "{{ value }} - News Search"
+      url: "https://news.google.com/search?q={{ value }}%20covid"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.news.google.com"
     }
   }
 
@@ -362,6 +377,11 @@ view: jhu_sample_county_level_final {
     sql: CASE WHEN LENGTH(cast(${fips} as string)) = 4 THEN CONCAT('0',${fips})
       ELSE cast(${fips} as string) END;;
   }
+
+#   dimension: distance {
+#     type: distance
+#     sql: ${} ;;
+#   }
 
 #### Location Rank ####
 
@@ -397,7 +417,7 @@ view: jhu_sample_county_level_final {
     sql: case when ${country_rank.rank} <= {% parameter show_top_x_values %} then ${country_region} else ' Other' end ;;
     link: {
       label: "{{ value }} - Country Deep Dive"
-      url: "/dashboards-next/23?Country={{ value }}"
+      url: "/dashboards/23?Country={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
 #     link: {
@@ -429,7 +449,7 @@ view: jhu_sample_county_level_final {
     sql: case when ${fips_rank.rank} <= {% parameter show_top_x_values %} then ${county} else ' Other' end ;;
     link: {
       label: "{{ value }} - County Deep Dive"
-      url: "/dashboards-next/22?County={{ value }}&State={{ state_top_x._value }}"
+      url: "/dashboards/22?County={{ value }}&State={{ state_top_x._value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
   }
