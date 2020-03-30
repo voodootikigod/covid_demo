@@ -368,3 +368,15 @@ map_layer: us_pumas {
   max_zoom_level: 13
   property_key: "GEOID"
 }
+
+# This is a map layer of the US by county (using FIPS, labeled as GEOID). However, it collapses the 5 NYC counties (Kings, Queens,
+# New York, Richmond, Bronx) into a single entity called New York City, with a made-up FIPS code of 36125
+map_layer: us_counties_fips_nyc {
+  format: "vector_tile_region"
+  url: "https://a.tiles.mapbox.com/v4/looker-maps.b80a88vi/{z}/{x}/{y}.mvt?access_token=@{mapbox_api_key}"
+  feature_key: "us_counties_fips_nycgeojson"
+  extents_json_url: "https://rawcdn.githack.com/dwmintz/looker_map_layers/bb342dd473bd32bfeeaf71de71e2eb7eddcb8feb/us_counties_fips_nyc.json"
+  min_zoom_level: 0
+  max_zoom_level: 12
+  property_key: "GEOID"
+}
