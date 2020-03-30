@@ -208,9 +208,15 @@ view: jhu_sample_county_level_final {
   }
 
   dimension: county {
-    hidden: yes
+    group_label: "Location"
+    label: "County"
     type: string
     sql: ${TABLE}.county ;;
+    link: {
+      label: "{{ value }} - County Deep Dive"
+      url: "/dashboards-next/22?County={{ value }}&State={{ province_state._value }}"
+      icon_url: "https://looker.com/favicon.ico"
+    }
   }
 
   dimension: lat {
@@ -234,7 +240,7 @@ view: jhu_sample_county_level_final {
 
   dimension: fips {
     group_label: "Location"
-    label: "County"
+    label: "County (Maps)"
     map_layer_name: us_counties_fips
     type: number
     sql: ${TABLE}.fips ;;
@@ -247,6 +253,11 @@ view: jhu_sample_county_level_final {
     type: string
     sql: ${TABLE}.province_state ;;
     drill_fields: [fips]
+    link: {
+      label: "{{ value }} - State Deep Dive"
+      url: "/dashboards-next/21?State={{ value }}"
+      icon_url: "https://looker.com/favicon.ico"
+    }
   }
 
 #### KPIs ####
@@ -307,6 +318,11 @@ view: jhu_sample_county_level_final {
         -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
       end ;;
     drill_fields: [province_state]
+    link: {
+      label: "{{ value }} - Country Deep Dive"
+      url: "/dashboards-next/23?Country={{ value }}"
+      icon_url: "https://looker.com/favicon.ico"
+    }
   }
 
   dimension: county_non_null {
@@ -368,18 +384,33 @@ view: jhu_sample_county_level_final {
     group_label: "Location"
     label: "Country (Show Top X Values)"
     sql: case when ${country_rank.rank} <= {% parameter show_top_x_values %} then ${country_region} else ' Other' end ;;
+    link: {
+      label: "{{ value }} - Country Deep Dive"
+      url: "/dashboards-next/23?Country={{ value }}"
+      icon_url: "https://looker.com/favicon.ico"
+    }
   }
 
   dimension: state_top_x {
     group_label: "Location"
     label: "State (Show Top X Values)"
     sql: case when ${state_rank.rank} <= {% parameter show_top_x_values %} then ${province_state} else ' Other' end ;;
+    link: {
+      label: "{{ value }} - State Deep Dive"
+      url: "/dashboards-next/21?State={{ value }}"
+      icon_url: "https://looker.com/favicon.ico"
+    }
   }
 
   dimension: county_top_x {
     group_label: "Location"
     label: "County (Show Top X Values)"
     sql: case when ${fips_rank.rank} <= {% parameter show_top_x_values %} then ${county} else ' Other' end ;;
+    link: {
+      label: "{{ value }} - County Deep Dive"
+      url: "/dashboards-next/22?County={{ value }}&State={{ state_top_x._value }}"
+      icon_url: "https://looker.com/favicon.ico"
+    }
   }
 
 #### Forecasted ####
@@ -583,6 +614,7 @@ view: jhu_sample_county_level_final {
       {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${confirmed_new_option_1}
       {% else %}  ${confirmed_new_option_2}
       {% endif %} ;;
+    drill_fields: [drill*]
   }
 
   measure: confirmed_new_per_million {
@@ -618,6 +650,7 @@ view: jhu_sample_county_level_final {
           {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${confirmed_option_1}
           {% else %}  ${confirmed_option_2}
           {% endif %} ;;
+    drill_fields: [drill*]
   }
 
   measure: confirmed_running_total_per_million {
@@ -635,6 +668,7 @@ view: jhu_sample_county_level_final {
     type: number
     sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_icu_beds},0) ;;
     value_format_name: decimal_2
+    drill_fields: [drill*]
   }
 
   measure: confirmed_cases_per_staffed_beds {
@@ -643,6 +677,7 @@ view: jhu_sample_county_level_final {
     type: number
     sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_staffed_beds},0) ;;
     value_format_name: decimal_2
+    drill_fields: [drill*]
   }
 
   measure: confirmed_cases_per_licensed_beds {
@@ -651,6 +686,7 @@ view: jhu_sample_county_level_final {
     type: number
     sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_licensed_beds},0) ;;
     value_format_name: decimal_2
+    drill_fields: [drill*]
   }
 
   measure: deaths_new_option_1 {
@@ -677,6 +713,7 @@ view: jhu_sample_county_level_final {
       {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${deaths_new_option_1}
       {% else %}  ${deaths_new_option_2}
       {% endif %} ;;
+    drill_fields: [drill*]
   }
 
   measure: deaths_new_per_million {
@@ -712,6 +749,7 @@ view: jhu_sample_county_level_final {
           {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${deaths_option_1}
           {% else %}  ${deaths_option_2}
           {% endif %} ;;
+    drill_fields: [drill*]
   }
 
   measure: deaths_running_total_per_million {
@@ -729,6 +767,7 @@ view: jhu_sample_county_level_final {
     type: number
     sql: 1.0 * ${deaths_running_total}/NULLIF(${confirmed_running_total}, 0);;
     value_format_name: percent_1
+    drill_fields: [drill*]
   }
 
   measure: min_date {
@@ -792,6 +831,7 @@ view: jhu_sample_county_level_final {
   set: drill {
     fields: [
       country_region,
+      province_state,
       x,
       confirmed_cases,
       deaths

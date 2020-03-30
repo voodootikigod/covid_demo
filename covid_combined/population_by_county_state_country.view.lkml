@@ -14,7 +14,6 @@ view: population_by_county_state_country {
       ) a
       LEFT JOIN `bigquery-public-data.utility_us.us_county_area` b
         ON cast(a.fips as int64) = cast(b.geo_id as int64)
-       WHERE province_state = 'New York'
     ;;
   }
   # sql_table_name: `lookerdata.covid19.population_by_county_state_country` ;;

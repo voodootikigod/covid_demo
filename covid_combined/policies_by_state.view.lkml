@@ -106,6 +106,7 @@ view: policies_by_state {
     sql: ${TABLE}.Early_Prescription_Refills ;;
     html:
       {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+      {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
       {% else %}                    <font color="green">{{ rendered_value }}</font>
       {% endif %} ;;
   }
@@ -116,6 +117,7 @@ view: policies_by_state {
     sql: ${TABLE}.Emergency_Declaration ;;
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+    {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
     {% else %}                    <font color="green">{{ rendered_value }}</font>
     {% endif %} ;;
   }
@@ -126,6 +128,7 @@ view: policies_by_state {
     sql: ${TABLE}.Free_Cost_Vaccine_When_Available ;;
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+    {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
     {% else %}                    <font color="green">{{ rendered_value }}</font>
     {% endif %} ;;
   }
@@ -136,6 +139,7 @@ view: policies_by_state {
     sql: ${TABLE}.Marketplace_Special_Enrollment_Period__SEP_ ;;
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+    {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
     {% else %}                    <font color="green">{{ rendered_value }}</font>
     {% endif %} ;;
   }
@@ -146,6 +150,7 @@ view: policies_by_state {
     sql: ${TABLE}.Paid_Sick_Leave ;;
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+    {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
     {% else %}                    <font color="green">{{ rendered_value }}</font>
     {% endif %} ;;
   }
@@ -156,6 +161,7 @@ view: policies_by_state {
     sql: ${TABLE}.Section_1135_Waiver ;;
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+    {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
     {% else %}                    <font color="green">{{ rendered_value }}</font>
     {% endif %} ;;
   }
@@ -166,6 +172,7 @@ view: policies_by_state {
     sql: ${TABLE}.State_Requires_Waiver_of_Prior_Authorization_Requirements ;;
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+    {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
     {% else %}                    <font color="green">{{ rendered_value }}</font>
     {% endif %} ;;
   }
@@ -176,6 +183,7 @@ view: policies_by_state {
     sql: ${TABLE}.Waive_Cost_Sharing_for_COVID_19_Treatment ;;
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+    {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
     {% else %}                    <font color="green">{{ rendered_value }}</font>
     {% endif %} ;;
   }
