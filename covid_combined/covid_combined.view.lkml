@@ -399,11 +399,11 @@ view: jhu_sample_county_level_final {
       url: "/dashboards-next/23?Country={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
-    link: {
-      label: "{{ value }} - COVID19 Website"
-      url: "{{ country_url_code_final.url._value }}"
-      icon_url: "http://google.com/favicon.ico"
-    }
+#     link: {
+#       label: "{{ value }} - COVID19 Website"
+#       url: "{{ country_url_code_final.url._value }}"
+#       icon_url: "http://google.com/favicon.ico"
+#     }
   }
 
   dimension: state_top_x {
@@ -415,11 +415,11 @@ view: jhu_sample_county_level_final {
       url: "/dashboards-next/21?State={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
-    link: {
-      label: "{{ value }} - COVID19 Website"
-      url: "{{ state_url_code_final.url._value }}"
-      icon_url: "http://google.com/favicon.ico"
-    }
+#     link: {
+#       label: "{{ value }} - COVID19 Website"
+#       url: "{{ state_url_code_final.url._value }}"
+#       icon_url: "http://google.com/favicon.ico"
+#     }
   }
 
   dimension: county_top_x {
