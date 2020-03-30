@@ -110,11 +110,21 @@ view: acs_puma_facts {
     type: number
     sql: 1.0*${total_population_above_65} / nullif(${population},0)  ;;
     value_format_name: percent_1
+    link: {
+      label: "Data Source - American Community Survey Data (ACS)"
+      url: "https://www2.census.gov/programs-surveys/acs/summary_file/2017/data/?#"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.census.gov"
+    }
   }
   measure: percent_apartment_buildings {
     type: number
     sql: 1.0*${sum_dwellings_5_or_more_units} / nullif(${sum_total_dwellings},0)  ;;
     value_format_name: percent_1
+    link: {
+      label: "Data Source - American Community Survey Data (ACS)"
+      url: "https://www2.census.gov/programs-surveys/acs/summary_file/2017/data/?#"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.census.gov"
+    }
   }
 
 }

@@ -341,6 +341,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_confirmed_running_total}                 - ${sum_prior_6_days_confirmed_running_total}) / NULLIF(${sum_prior_6_days_confirmed_running_total},0))*2.0
           + ((${sum_prior_6_days_confirmed_running_total}                 - ${sum_prior_7_days_confirmed_running_total}) / NULLIF(${sum_prior_7_days_confirmed_running_total},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: seven_day_average_change_rate_deaths_running_total {
@@ -358,6 +368,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_deaths_running_total}                - ${sum_prior_6_days_deaths_running_total}) / NULLIF(${sum_prior_6_days_deaths_running_total},0))*2.0
           + ((${sum_prior_6_days_deaths_running_total}                - ${sum_prior_7_days_deaths_running_total}) / NULLIF(${sum_prior_7_days_deaths_running_total},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: seven_day_average_change_rate_confirmed_cases_new {
@@ -375,6 +395,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_confirmed_new}                 - ${sum_prior_6_days_confirmed_new}) / NULLIF(${sum_prior_6_days_confirmed_new},0))*2.0
           + ((${sum_prior_6_days_confirmed_new}                 - ${sum_prior_7_days_confirmed_new}) / NULLIF(${sum_prior_7_days_confirmed_new},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: seven_day_average_change_rate_deaths_new {
@@ -392,6 +422,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_deaths_new}                - ${sum_prior_6_days_deaths_new}) / NULLIF(${sum_prior_6_days_deaths_new},0))*2.0
           + ((${sum_prior_6_days_deaths_new}                - ${sum_prior_7_days_deaths_new}) / NULLIF(${sum_prior_7_days_deaths_new},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: seven_day_average_change_rate_confirmed_cases_running_total_per_million {
@@ -409,6 +449,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_confirmed_running_total_per_million}                 - ${sum_prior_6_days_confirmed_running_total_per_million}) / NULLIF(${sum_prior_6_days_confirmed_running_total_per_million},0))*2.0
           + ((${sum_prior_6_days_confirmed_running_total_per_million}                 - ${sum_prior_7_days_confirmed_running_total_per_million}) / NULLIF(${sum_prior_7_days_confirmed_running_total_per_million},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: seven_day_average_change_rate_deaths_running_total_per_million {
@@ -426,6 +476,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_deaths_running_total_per_million}                - ${sum_prior_6_days_deaths_running_total_per_million}) / NULLIF(${sum_prior_6_days_deaths_running_total_per_million},0))*2.0
           + ((${sum_prior_6_days_deaths_running_total_per_million}                - ${sum_prior_7_days_deaths_running_total_per_million}) / NULLIF(${sum_prior_7_days_deaths_running_total_per_million},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: seven_day_average_change_rate_confirmed_cases_new_per_million {
@@ -443,6 +503,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_confirmed_new_per_million}                 - ${sum_prior_6_days_confirmed_new_per_million}) / NULLIF(${sum_prior_6_days_confirmed_new_per_million},0))*2.0
           + ((${sum_prior_6_days_confirmed_new_per_million}                 - ${sum_prior_7_days_confirmed_new_per_million}) / NULLIF(${sum_prior_7_days_confirmed_new_per_million},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: seven_day_average_change_rate_deaths_new_per_million {
@@ -460,6 +530,16 @@ view: prior_days_cases_covid {
           + ((${sum_prior_5_days_deaths_new_per_million}                - ${sum_prior_6_days_deaths_new_per_million}) / NULLIF(${sum_prior_6_days_deaths_new_per_million},0))*2.0
           + ((${sum_prior_6_days_deaths_new_per_million}                - ${sum_prior_7_days_deaths_new_per_million}) / NULLIF(${sum_prior_7_days_deaths_new_per_million},0))
         )/28.0;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_confirmed_cases_rolling_total {
@@ -469,6 +549,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_confirmed_cases_running_total},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_deaths_rolling_total {
@@ -478,6 +568,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_deaths_running_total},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_confirmed_cases_new {
@@ -487,6 +587,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_confirmed_cases_new},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_deaths_new {
@@ -496,6 +606,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_deaths_new},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_confirmed_cases_rolling_total_per_million {
@@ -505,6 +625,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_confirmed_cases_running_total_per_million},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_deaths_rolling_total_per_million {
@@ -514,6 +644,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_deaths_running_total_per_million},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_confirmed_cases_new_per_million {
@@ -523,6 +663,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_confirmed_cases_new_per_million},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: doubling_time_deaths_new_per_million {
@@ -532,6 +682,16 @@ view: prior_days_cases_covid {
     value_format_name: decimal_1
     sql:  70 / NULLIF(100*${seven_day_average_change_rate_deaths_new_per_million},0);;
     html: {{rendered_value}} Day(s) ;;
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
 }

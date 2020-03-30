@@ -258,6 +258,11 @@ view: jhu_sample_county_level_final {
       url: "/dashboards-next/21?State={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
+    link: {
+      label: "{{ value }} - COVID19 Website"
+      url: "{{ state_url_code_final.url._value }}"
+      icon_url: "http://google.com/favicon.ico"
+    }
   }
 
 #### KPIs ####
@@ -577,6 +582,16 @@ view: jhu_sample_county_level_final {
         {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${confirmed_running_total}
         {% endif %} ;;
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: deaths {
@@ -588,6 +603,16 @@ view: jhu_sample_county_level_final {
         {% elsif new_vs_running_total._parameter_value == 'running_total' %} ${deaths_running_total}
         {% endif %} ;;
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: confirmed_new_option_1 {
@@ -615,6 +640,16 @@ view: jhu_sample_county_level_final {
       {% else %}  ${confirmed_new_option_2}
       {% endif %} ;;
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: confirmed_new_per_million {
@@ -624,6 +659,16 @@ view: jhu_sample_county_level_final {
     sql: 1000000*${confirmed_new} / nullif(${population_by_county_state_country.sum_population},0) ;;
     value_format_name: decimal_0
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: confirmed_option_1 {
@@ -651,6 +696,16 @@ view: jhu_sample_county_level_final {
           {% else %}  ${confirmed_option_2}
           {% endif %} ;;
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: confirmed_running_total_per_million {
@@ -660,6 +715,16 @@ view: jhu_sample_county_level_final {
     sql: 1000000*${confirmed_running_total} / nullif(${population_by_county_state_country.sum_population},0) ;;
     value_format_name: decimal_0
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: confirmed_cases_per_icu_beds {
@@ -669,6 +734,16 @@ view: jhu_sample_county_level_final {
     sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_icu_beds},0) ;;
     value_format_name: decimal_2
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - ESRI Hospital Beds"
+      url: "https://coronavirus-resources.esri.com/datasets/definitivehc::definitive-healthcare-usa-hospital-beds?geometry=38.847%2C-16.820%2C-63.809%2C72.123"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.esri.com"
+    }
   }
 
   measure: confirmed_cases_per_staffed_beds {
@@ -678,6 +753,16 @@ view: jhu_sample_county_level_final {
     sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_staffed_beds},0) ;;
     value_format_name: decimal_2
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - ESRI Hospital Beds"
+      url: "https://coronavirus-resources.esri.com/datasets/definitivehc::definitive-healthcare-usa-hospital-beds?geometry=38.847%2C-16.820%2C-63.809%2C72.123"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.esri.com"
+    }
   }
 
   measure: confirmed_cases_per_licensed_beds {
@@ -687,6 +772,16 @@ view: jhu_sample_county_level_final {
     sql: 1.0*${confirmed_running_total}*${hospital_bed_summary_final.estimated_percent_of_covid_cases_of_county}/nullif(${hospital_bed_summary_final.sum_num_licensed_beds},0) ;;
     value_format_name: decimal_2
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - ESRI Hospital Beds"
+      url: "https://coronavirus-resources.esri.com/datasets/definitivehc::definitive-healthcare-usa-hospital-beds?geometry=38.847%2C-16.820%2C-63.809%2C72.123"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.esri.com"
+    }
   }
 
   measure: deaths_new_option_1 {
@@ -714,6 +809,16 @@ view: jhu_sample_county_level_final {
       {% else %}  ${deaths_new_option_2}
       {% endif %} ;;
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: deaths_new_per_million {
@@ -723,6 +828,16 @@ view: jhu_sample_county_level_final {
     sql: 1000000*${deaths_new} / nullif(${population_by_county_state_country.sum_population},0) ;;
     value_format_name: decimal_0
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: deaths_option_1 {
@@ -750,6 +865,16 @@ view: jhu_sample_county_level_final {
           {% else %}  ${deaths_option_2}
           {% endif %} ;;
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: deaths_running_total_per_million {
@@ -759,6 +884,16 @@ view: jhu_sample_county_level_final {
     sql: 1000000*${deaths_running_total} / nullif(${population_by_county_state_country.sum_population},0) ;;
     value_format_name: decimal_0
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: case_fatality_rate {
@@ -768,6 +903,16 @@ view: jhu_sample_county_level_final {
     sql: 1.0 * ${deaths_running_total}/NULLIF(${confirmed_running_total}, 0);;
     value_format_name: percent_1
     drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
   }
 
   measure: min_date {

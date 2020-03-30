@@ -60,6 +60,13 @@ explore: jhu_sample_county_level_final {
     sql_on: 1 = 1  ;;
   }
 
+## State URL ##
+
+ join: state_url_code_final {
+  relationship: many_to_one
+  sql_on: ${jhu_sample_county_level_final.province_state} = ${state_url_code_final.state} ;;
+ }
+
 ## Rank ##
 
   join: country_rank {

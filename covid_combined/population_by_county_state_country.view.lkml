@@ -71,12 +71,22 @@ view: population_by_county_state_country {
     label: "Total Population"
     type: sum
     sql: ${population} ;;
+    link: {
+      label: "Data Source - American Community Survey Data (ACS)"
+      url: "https://www2.census.gov/programs-surveys/acs/summary_file/2017/data/?#"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.census.gov"
+    }
   }
 
   measure: sum_area_land_meters {
     label: "Total Land Area"
     type: sum
     sql: ${area_land_meters} ;;
+    link: {
+      label: "Data Source - American Community Survey Data (ACS)"
+      url: "https://www2.census.gov/programs-surveys/acs/summary_file/2017/data/?#"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.census.gov"
+    }
   }
 
   measure: population_density {
@@ -84,6 +94,11 @@ view: population_by_county_state_country {
     type: number
     sql: 1000000.0*${sum_population}/nullif(${sum_area_land_meters},0) ;;
     value_format_name: decimal_1
+    link: {
+      label: "Data Source - American Community Survey Data (ACS)"
+      url: "https://www2.census.gov/programs-surveys/acs/summary_file/2017/data/?#"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.census.gov"
+    }
   }
 
   measure: count {
