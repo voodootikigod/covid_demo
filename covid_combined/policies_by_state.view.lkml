@@ -188,6 +188,115 @@ view: policies_by_state {
     {% endif %} ;;
   }
 
+  dimension: score_stay_order_policy {
+    hidden: yes
+    type: number
+    sql:
+      CASE
+        WHEN ${stay_order_policy} = 'No policy' then 0
+        WHEN ${stay_order_reach} = 'State-wide' then 1
+        ELSE 0.5
+      END
+    ;;
+  }
+
+  dimension: score_non_essential_business_closures {
+    hidden: yes
+    type: number
+    sql:
+      CASE
+        WHEN ${non_essential_business_closures} = 'None' then 0
+        WHEN ${non_essential_business_closures} = 'All Non-Essential Businesses' then 1
+        ELSE 0.5
+      END
+    ;;
+  }
+
+  dimension: score_large_gatherings_ban {
+    hidden: yes
+    type: number
+    sql:
+      CASE
+        WHEN ${large_gatherings_ban} = 'None' then 0
+        WHEN ${large_gatherings_ban} = 'All Gatherings Prohibited' then 1
+        ELSE 0.5
+      END
+    ;;
+  }
+
+  dimension: score_bar_restaurant_limits {
+    hidden: yes
+    type: number
+    sql:
+      CASE
+        WHEN ${bar_restaurant_limits} = 'None' then 0
+        WHEN ${bar_restaurant_limits} = 'Limited On-site Service' then 0.5
+        WHEN ${bar_restaurant_limits} = 'Closed except for takeout/delivery' then 1
+        ELSE 0.5
+      END
+    ;;
+  }
+
+  dimension: score_state_mandated_school_closures {
+    hidden: yes
+    type: number
+    sql:
+      CASE
+        WHEN ${state_mandated_school_closures} = 'No' then 0
+        WHEN ${state_mandated_school_closures} = 'Yes' then 1
+        WHEN ${state_mandated_school_closures} = 'Effectively Closed' then 0.75
+        ELSE 0.5
+      END
+    ;;
+  }
+
+  dimension: score_emergency_declaration {
+    hidden: yes
+    type: number
+    sql:
+      CASE
+        WHEN ${emergency_declaration} = FALSE then 0
+        WHEN ${emergency_declaration} = TRUE then 1
+        ELSE 0.25
+      END
+    ;;
+  }
+
+  dimension: score_paid_sick_leave {
+    hidden: yes
+    type: number
+    sql:
+      CASE
+        WHEN ${paid_sick_leave} = 'No policy' then 0
+        WHEN ${paid_sick_leave} = 'Not approved' then 0.25
+        ELSE 1
+      END
+    ;;
+  }
+
+  dimension: policy_score {
+    hidden: yes
+    type: number
+    sql:
+      (
+        (${score_stay_order_policy} * 35) +
+        (${score_non_essential_business_closures} * 15) +
+        (${score_large_gatherings_ban} * 15) +
+        (${score_bar_restaurant_limits} * 15) +
+        (${score_state_mandated_school_closures} * 10) +
+        (${score_emergency_declaration} * 5) +
+        (${score_paid_sick_leave} * 5)
+      ) / 100.0
+    ;;
+  }
+
+  measure: average_policy_score {
+    label: "Policy Score"
+    type: average
+    sql: ${policy_score} ;;
+    value_format_name: percent_0
+  }
+
   measure: count {
     hidden: yes
     type: count

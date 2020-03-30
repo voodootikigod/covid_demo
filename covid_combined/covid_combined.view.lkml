@@ -250,6 +250,7 @@ view: jhu_sample_county_level_final {
   dimension: province_state {
     group_label: "Location"
     label: "State"
+    map_layer_name: us_states
     type: string
     sql: ${TABLE}.province_state ;;
     drill_fields: [fips]
