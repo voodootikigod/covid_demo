@@ -60,6 +60,31 @@ view: hospital_bed_summary_final {
     group_label: "Hospital"
     type: string
     sql: ${TABLE}.HOSPITAL_NAME ;;
+    action: {
+      label: "Move ventilators over"
+      url: "https://desolate-refuge-53336.herokuapp.com/posts"
+      icon_url: "https://sendgrid.com/favicon.ico"
+      param: {
+        name: "some_auth_code"
+        value: "abc123456"
+      }
+      form_param: {
+        name: "Subject"
+        required: yes
+        default: "Move ventailors from {{ value }}"
+      }
+      form_param: {
+        name: "To Mailing List"
+        required: yes
+      }
+      form_param: {
+        name: "Body"
+        type: textarea
+        required: yes
+        default:
+        "Given the high amount of risk seen in {{ value }}, we strongly recommend moving ventilators in."
+      }
+    }
   }
 
   dimension: hospital_type {
