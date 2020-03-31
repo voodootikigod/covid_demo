@@ -247,8 +247,8 @@ view: jhu_sample_county_level_final {
     group_label: "Location"
     label: "County (Maps)"
     map_layer_name: us_counties_fips
-    type: number
-    sql: ${TABLE}.fips ;;
+    type: string
+    sql: SUBSTR('00000' || IFNULL(SAFE_CAST(${TABLE}.fips AS STRING), ''), -5) ;;
     html: {{ county._value }} ;;
   }
 
