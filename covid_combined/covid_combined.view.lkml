@@ -154,7 +154,7 @@ view: jhu_sample_county_level_final {
         round(deaths_running_total + SUM(forecasted_new_deaths) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,'')) ORDER BY forecast_date ASC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW),0) as deaths_cumulative,
         round(forecasted_new_deaths,0) as deaths_new_cases
 
-    FROM `lookerdata.covid19.forecasting_results_temp_table3`
+    FROM `lookerdata.looker_scratch.TL_covid_covid_forecasting_results`
     WHERE cast(forecast_date as date) > (SELECT max(measurement_date) FROM `lookerdata.covid19.combined_covid_data`)
 
     ;;

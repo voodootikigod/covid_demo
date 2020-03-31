@@ -1,3 +1,23 @@
+explore: patient_detail {}
+view: patient_detail {
+  derived_table: {
+    sql:
+
+          SELECT 'Aaron Test' as patient_name, 'Asthma' as condition, 'Recovering' as status, 2 as bed_days_needed
+UNION ALL SELECT 'Bob Test' as patient_name, 'Heart Disease' as condition, 'Recovering' as status, 3 as bed_days_needed
+UNION ALL SELECT 'Connor Test' as patient_name, 'Asthma' as condition, 'Worsening' as status, 20 as bed_days_needed
+UNION ALL SELECT 'David Test' as patient_name, 'Heart Disease' as condition, 'Worsening' as status, 31 as bed_days_needed
+UNION ALL SELECT 'Eric Test' as patient_name, 'Asthma' as condition, 'New Patient' as status, 10 as bed_days_needed
+UNION ALL SELECT 'Franklin Test' as patient_name, 'Heart Disease' as condition, 'New Patient' as status, 5 as bed_days_needed
+UNION ALL SELECT 'George Test' as patient_name, 'Asthma' as condition, 'Recovered' as status, 0 as bed_days_needed
+    ;;
+  }
+    dimension: patient_name {}
+    dimension: condition {}
+    dimension: status {}
+    dimension: bed_days_needed {type:number }
+}
+
 view: hospital_bed_summary_final {
   sql_table_name: `lookerdata.covid19.hospital_bed_summary_final` ;;
 
@@ -60,6 +80,11 @@ view: hospital_bed_summary_final {
     group_label: "Hospital"
     type: string
     sql: ${TABLE}.HOSPITAL_NAME ;;
+    link: {
+      label: "{{ value }} - Hospital Deep Dive"
+      url: "/dashboards/25?Hospital%20Name={{ value }}"
+      icon_url: "https://looker.com/favicon.ico"
+    }
     action: {
       label: "Move ventilators over"
       url: "https://desolate-refuge-53336.herokuapp.com/posts"
@@ -94,7 +119,8 @@ view: hospital_bed_summary_final {
   }
 
   dimension: hq_address {
-    hidden: yes
+    group_label: "Hospital"
+    label: "Hospital Address"
     type: string
     sql: ${TABLE}.HQ_ADDRESS ;;
   }
@@ -106,7 +132,8 @@ view: hospital_bed_summary_final {
   }
 
   dimension: hq_city {
-    hidden: yes
+    group_label: "Hospital"
+    label: "Hospital City"
     type: string
     sql: ${TABLE}.HQ_CITY ;;
   }
@@ -118,7 +145,9 @@ view: hospital_bed_summary_final {
   }
 
   dimension: hq_zip_code {
-    hidden: yes
+    group_label: "Hospital"
+    label: "Hospital Zip Code"
+    value_format_name: id
     type: number
     sql: ${TABLE}.HQ_ZIP_CODE ;;
   }
@@ -126,13 +155,13 @@ view: hospital_bed_summary_final {
   dimension: lat {
     hidden: yes
     type: number
-    sql: ${TABLE}.Lat ;;
+    sql: ${TABLE}.Long ;;
   }
 
   dimension: long {
     hidden: yes
     type: number
-    sql: ${TABLE}.Long ;;
+    sql: ${TABLE}.Lat ;;
   }
 
   dimension: hospital_location {
