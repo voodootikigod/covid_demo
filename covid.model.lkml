@@ -6,7 +6,7 @@ include: "/intl_covid_data/*.view.lkml"
 include: "/us_covid_data/*.view.lkml"
 
 # include: "/**/view.lkml"                   # include all views in this project
-# include: "/dashboards/*.dashboard.lookml"   # include a LookML dashboard called my_dashboard
+include: "/dashboards/*.dashboard.lookml"   # include a LookML dashboard called my_dashboard
 
 ############ New COVID ############
 
