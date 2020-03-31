@@ -73,7 +73,7 @@ view: hospital_bed_summary_final {
   dimension: fips {
     hidden: yes
     type: number
-    sql: ${TABLE}.FIPS ;;
+    sql: SUBSTR('00000' || IFNULL(SAFE_CAST(${TABLE}.FIPS AS STRING), ''), -5) ;;
   }
 
   dimension: hospital_name {
