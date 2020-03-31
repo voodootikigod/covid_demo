@@ -4,7 +4,7 @@
   elements:
   - title: Confirmed Cases
     name: Confirmed Cases
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.confirmed_running_total, jhu_sample_county_level_final.measurement_date]
@@ -65,7 +65,7 @@
     height: 4
   - title: Deaths
     name: Deaths
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.deaths_running_total]
@@ -126,7 +126,7 @@
     height: 4
   - title: Daily Growth Rate
     name: Daily Growth Rate
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_running_total]
@@ -187,7 +187,7 @@
     height: 4
   - title: Confirmed Cases per Million
     name: Confirmed Cases per Million
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.confirmed_running_total_per_million]
@@ -248,7 +248,7 @@
     height: 4
   - title: Confirmed Cases
     name: Confirmed Cases (2)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_geo_choropleth
     fields: [jhu_sample_county_level_final.province_state, jhu_sample_county_level_final.confirmed_running_total]
@@ -331,7 +331,7 @@
     height: 8
   - title: Daily Growth Rate
     name: Daily Growth Rate (2)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_geo_choropleth
     fields: [jhu_sample_county_level_final.province_state, prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_running_total]
@@ -414,7 +414,7 @@
     height: 8
   - title: State Policy Scoring
     name: State Policy Scoring
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_geo_choropleth
     fields: [jhu_sample_county_level_final.province_state, policies_by_state.average_policy_score]
@@ -498,7 +498,7 @@
     height: 8
   - title: Confirmed Cases (7 Day Forecast)
     name: Confirmed Cases (7 Day Forecast)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_column
     fields: [jhu_sample_county_level_final.real_vs_forecasted, jhu_sample_county_level_final.measurement_date,
@@ -610,7 +610,7 @@
     height: 9
   - title: Confirmed Cases (Last 3 Weeks)
     name: Confirmed Cases (Last 3 Weeks)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_column
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.confirmed_running_total,
@@ -710,7 +710,7 @@
     height: 9
   - title: State Summary (Today)
     name: State Summary (Today)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_grid
     fields: [jhu_sample_county_level_final.province_state, jhu_sample_county_level_final.confirmed_cases_per_icu_beds,
@@ -834,7 +834,7 @@
     height: 9
   - title: State Summary (in 7 Days)
     name: State Summary (in 7 Days)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_grid
     fields: [jhu_sample_county_level_final.province_state, jhu_sample_county_level_final.confirmed_cases_per_icu_beds,
@@ -965,7 +965,7 @@
     default_value: ''
     allow_multiple_values: true
     required: false
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     listens_to_filters: []
     field: state_region.region
@@ -975,7 +975,7 @@
     default_value: ''
     allow_multiple_values: true
     required: false
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     listens_to_filters: [Region]
     field: jhu_sample_county_level_final.province_state

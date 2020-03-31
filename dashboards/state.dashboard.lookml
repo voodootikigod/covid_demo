@@ -4,7 +4,7 @@
   elements:
   - title: Confirmed Cases
     name: Confirmed Cases
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.confirmed_running_total, jhu_sample_county_level_final.measurement_date]
@@ -65,7 +65,7 @@
     height: 4
   - title: Deaths
     name: Deaths
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.deaths_running_total]
@@ -126,7 +126,7 @@
     height: 4
   - title: Daily Growth Rate
     name: Daily Growth Rate
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_running_total]
@@ -187,7 +187,7 @@
     height: 4
   - title: Cases / ICU Beds
     name: Cases / ICU Beds
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.confirmed_cases_per_icu_beds]
@@ -248,7 +248,7 @@
     height: 4
   - title: Confirmed Cases
     name: Confirmed Cases (2)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_map
     fields: [jhu_sample_county_level_final.fips, jhu_sample_county_level_final.confirmed_running_total]
@@ -331,7 +331,7 @@
     height: 8
   - title: Daily Growth Rate
     name: Daily Growth Rate (2)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_map
     fields: [prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_running_total,
@@ -417,7 +417,7 @@
     height: 8
   - title: Confirmed Cases (7 Day Forecast)
     name: Confirmed Cases (7 Day Forecast)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_column
     fields: [jhu_sample_county_level_final.real_vs_forecasted, jhu_sample_county_level_final.measurement_date,
@@ -529,7 +529,7 @@
     height: 9
   - title: County Summary (Today)
     name: County Summary (Today)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_grid
     fields: [jhu_sample_county_level_final.county, jhu_sample_county_level_final.confirmed_cases_per_icu_beds,
@@ -653,7 +653,7 @@
     height: 9
   - title: County Summary (in 7 Days)
     name: County Summary (in 7 Days)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_grid
     fields: [jhu_sample_county_level_final.county, jhu_sample_county_level_final.confirmed_cases_per_icu_beds,
@@ -779,7 +779,7 @@
     height: 9
   - title: State Mandates
     name: State Mandates
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_single_record
     fields: [jhu_sample_county_level_final.province_state, policies_by_state.stay_order_policy,
@@ -837,7 +837,7 @@
     height: 6
   - title: Confirmed Cases by County
     name: Confirmed Cases by County
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_column
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.confirmed_running_total,
@@ -949,7 +949,7 @@
     height: 9
   - title: Policy Score
     name: Policy Score
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [policies_by_state.average_policy_score]
@@ -1007,7 +1007,7 @@
     default_value: New York
     allow_multiple_values: true
     required: false
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     listens_to_filters: [Region]
     field: jhu_sample_county_level_final.province_state
@@ -1017,7 +1017,7 @@
     default_value: ''
     allow_multiple_values: true
     required: false
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     listens_to_filters: [State]
     field: jhu_sample_county_level_final.county

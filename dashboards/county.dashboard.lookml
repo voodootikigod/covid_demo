@@ -4,7 +4,7 @@
   elements:
   - title: Confirmed Cases
     name: Confirmed Cases
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.confirmed_running_total, jhu_sample_county_level_final.measurement_date]
@@ -65,7 +65,7 @@
     height: 4
   - title: Deaths
     name: Deaths
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.deaths_running_total]
@@ -126,7 +126,7 @@
     height: 4
   - title: Daily Growth Rate
     name: Daily Growth Rate
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, prior_days_cases_covid.seven_day_average_change_rate_confirmed_cases_running_total]
@@ -187,7 +187,7 @@
     height: 4
   - title: Cases / ICU Beds
     name: Cases / ICU Beds
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [jhu_sample_county_level_final.measurement_date, jhu_sample_county_level_final.confirmed_cases_per_icu_beds]
@@ -248,7 +248,7 @@
     height: 4
   - title: Confirmed Cases per ICU Bed (7 Day Forecast)
     name: Confirmed Cases per ICU Bed (7 Day Forecast)
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_column
     fields: [jhu_sample_county_level_final.real_vs_forecasted, jhu_sample_county_level_final.measurement_date,
@@ -368,7 +368,7 @@
     height: 8
   - title: State Mandate
     name: State Mandate
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_single_record
     fields: [jhu_sample_county_level_final.county, policies_by_state.stay_order_policy,
@@ -426,7 +426,7 @@
     height: 6
   - title: Policy Score
     name: Policy Score
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: single_value
     fields: [policies_by_state.average_policy_score]
@@ -479,7 +479,7 @@
     height: 2
   - title: Local Hospitals
     name: Local Hospitals
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     type: looker_grid
     fields: [hospital_bed_summary_final.hospital_name, hospital_bed_summary_final.hospital_type,
@@ -603,7 +603,7 @@
     default_value: Maryland
     allow_multiple_values: true
     required: false
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     listens_to_filters: [Region]
     field: jhu_sample_county_level_final.province_state
@@ -613,7 +613,7 @@
     default_value: Baltimore
     allow_multiple_values: true
     required: false
-    model: covid
+    model: covid19_demo
     explore: jhu_sample_county_level_final
     listens_to_filters: [State]
     field: jhu_sample_county_level_final.county
