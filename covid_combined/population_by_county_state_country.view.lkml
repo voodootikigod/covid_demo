@@ -1,3 +1,5 @@
+explore: population_by_county_state_country {}
+
 view: population_by_county_state_country {
   derived_table: {
     datagroup_trigger: covid_data
@@ -28,7 +30,7 @@ view: population_by_county_state_country {
     primary_key: yes
     hidden: yes
     type: string
-    sql: concat(coalesce(${county},''), coalesce(${province_state},''), coalesce(${country_region},'')) ;;
+    sql: concat(coalesce(cast(${fips} as string),${county},''), coalesce(${province_state},''), coalesce(${country_region},'')) ;;
   }
 
   dimension: count2 {
@@ -108,8 +110,14 @@ view: population_by_county_state_country {
   }
 
   measure: count {
-    hidden: yes
+    # hidden: yes
     type: count
+    drill_fields: []
+  }
+  measure: count_pk {
+    # hidden: yes
+    type: count_distinct
+    sql: ${pre_pk} ;;
     drill_fields: []
   }
 }
