@@ -24,6 +24,11 @@ view: hospital_bed_summary_final {
     sql:
   SELECT *, case when fips in ( 36005, 36081, 36061, 36047, 36085 ) then 36125 else fips end as fips_nyc_corrected
   FROM `lookerdata.covid19.hospital_bed_summary_final`
+  WHERE hospital_type not in (
+    'Rehabilitation Hospital'
+   , 'Psychiatric Hospital'
+   , 'Religious Non-Medical Health Care Institution'
+  )
     ;;
   }
 
