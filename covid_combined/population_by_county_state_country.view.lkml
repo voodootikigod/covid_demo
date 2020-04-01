@@ -6,15 +6,21 @@ view: population_by_county_state_country {
       FROM
       (
          SELECT * FROM `lookerdata.covid19.population_by_county_state_country` UNION ALL
-         SELECT 36005 as fips,'Bronx' as county,'New York' as province_state,'US' as country_region,1432000 as population, 1 as count UNION ALL
-         SELECT 36081 as fips,'Queens' as county,'New York' as province_state,'US' as country_region,2273000 as population, 1 as count UNION ALL
-         SELECT 36061 as fips,'New York County' as county,'New York' as province_state,'US' as country_region,1629000 as population, 1 as count UNION ALL
-         SELECT 36047 as fips,'Brooklyn' as county,'New York' as province_state,'US' as country_region,2533000 as population, 1 as count UNION ALL
-         SELECT 36085 as fips,'Richmond' as county,'New York' as province_state,'US' as country_region,476000 as population, 1 as count
+        SELECT 36125 as fips,'New York City' as county,'New York' as province_state,'US' as country_region,8343000 as population, 1 as count
       ) a
-      LEFT JOIN `bigquery-public-data.utility_us.us_county_area` b
-        ON cast(a.fips as int64) = cast(b.geo_id as int64)
+      LEFT JOIN
+      (
+        SELECT geo_id, area_land_meters FROM `bigquery-public-data.utility_us.us_county_area` UNION ALL
+        SELECT cast(36125 as string) as geo_id, sum(area_land_meters) as area_land_meters FROM `bigquery-public-data.utility_us.us_county_area` WHERE cast(geo_id as int64) in (36005, 36081, 36061, 36047, 36085) GROUP BY 1
+      )  b
+        ON cast(a.fips as string) = cast(b.geo_id as string)
     ;;
+
+      #   SELECT 36005 as fips,'Bronx' as county,'New York' as province_state,'US' as country_region,1432000 as population, 1 as count UNION ALL
+      #   SELECT 36081 as fips,'Queens' as county,'New York' as province_state,'US' as country_region,2273000 as population, 1 as count UNION ALL
+      #   SELECT 36061 as fips,'New York County' as county,'New York' as province_state,'US' as country_region,1629000 as population, 1 as count UNION ALL
+      #   SELECT 36047 as fips,'Brooklyn' as county,'New York' as province_state,'US' as country_region,2533000 as population, 1 as count UNION ALL
+      #   SELECT 36085 as fips,'Richmond' as county,'New York' as province_state,'US' as country_region,476000 as population, 1 as count
   }
   # sql_table_name: `lookerdata.covid19.population_by_county_state_country` ;;
 

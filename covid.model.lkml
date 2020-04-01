@@ -302,19 +302,19 @@ persist_with: covid_data
 datagroup: covid_data {
   max_cache_age: "12 hours"
   sql_trigger:
-  SELECT sum(count)
-  FROM
-  (
-    SELECT count(*) as count FROM `lookerdata.covid19.nyt_covid_data`
-    UNION ALL
-    SELECT count(*) as count FROM `bigquery-public-data.covid19_jhu_csse.summary`
-  )
+    SELECT min(max_date) as max_date
+    FROM
+    (
+      SELECT max(cast(date as date)) as max_date FROM `lookerdata.covid19.nyt_covid_data`
+      UNION ALL
+      SELECT max(cast(date as date)) as max_date FROM `bigquery-public-data.covid19_jhu_csse.summary`
+    ) a
   ;;
 }
 
 datagroup: jhu_data {
   max_cache_age: "12 hours"
-  sql_trigger: SELECT count(*) FROM  `bigquery-public-data.covid19_jhu_csse.summary` ;;
+  sql_trigger: SELECT count(*) FROM `bigquery-public-data.covid19_jhu_csse.summary` ;;
 }
 
 

@@ -1,116 +1,3 @@
-view: nyc_correction {
-  derived_table: {
-    datagroup_trigger: covid_data
-    sql:
-
-      SELECT
-        fips,
-        county,
-        province_state,
-        country_region,
-        lat,
-        long,
-        combined_key,
-        measurement_date,
-        confirmed,
-        deaths
-
-    FROM `lookerdata.covid19.combined_covid_data`
-    WHERE NOT (province_state = 'New York' AND country_region = 'US' AND fips = 123456789)
-
-    UNION ALL
-
-    SELECT
-    36005 as fips,
-    'Bronx' as county,
-    'New York' as province_state,
-    'US' as country_region,
-    40.860208 as lat,
-    -73.857072 as long,
-    'Bronx, New York, US' as combined_key,
-    measurement_date,
-    round(confirmed * 0.17,0) as confirmed,
-    round(deaths * 0.17,0) as deaths
-    FROM `lookerdata.covid19.combined_covid_data`
-    WHERE province_state = 'New York'
-    AND country_region = 'US'
-    AND fips = 123456789
-
-    UNION ALL
-
-    SELECT
-      36081 as fips,
-      'Queens' as county,
-      'New York' as province_state,
-      'US' as country_region,
-      40.724358 as lat,
-      -73.798797 as long,
-      'Queens, New York, US' as combined_key,
-      measurement_date,
-      round(confirmed * 0.27,0) as confirmed,
-      round(deaths * 0.27,0) as deaths
-    FROM `lookerdata.covid19.combined_covid_data`
-    WHERE province_state = 'New York'
-    AND country_region = 'US'
-    AND fips = 123456789
-
-    UNION ALL
-
-    SELECT
-      36061 as fips,
-      'New York County' as county,
-      'New York' as province_state,
-      'US' as country_region,
-      40.774242 as lat,
-      -73.975842 as long,
-      'New York County, New York, US' as combined_key,
-      measurement_date,
-      round(confirmed * 0.19,0) as confirmed,
-      round(deaths * 0.19,0) as deaths
-    FROM `lookerdata.covid19.combined_covid_data`
-    WHERE province_state = 'New York'
-    AND country_region = 'US'
-    AND fips = 123456789
-
-    UNION ALL
-
-    SELECT
-      36047 as fips,
-      'Brooklyn' as county,
-      'New York' as province_state,
-      'US' as country_region,
-      40.682217 as lat,
-      -73.937122 as long,
-      'Brooklyn, New York, US' as combined_key,
-      measurement_date,
-      round(confirmed * 0.31,0) as confirmed,
-      round(deaths * 0.31,0) as deaths
-    FROM `lookerdata.covid19.combined_covid_data`
-    WHERE province_state = 'New York'
-    AND country_region = 'US'
-    AND fips = 123456789
-
-    UNION ALL
-
-    SELECT
-      36085 as fips,
-      'Richmond' as county,
-      'New York' as province_state,
-      'US' as country_region,
-      40.585763 as lat,
-      -74.135702 as long,
-      'Richmond, New York, US' as combined_key,
-      measurement_date,
-      round(confirmed * 0.06,0) as confirmed,
-      round(deaths * 0.06,0) as deaths
-    FROM `lookerdata.covid19.combined_covid_data`
-    WHERE province_state = 'New York'
-    AND country_region = 'US'
-    AND fips = 123456789
-
-    ;;
-  }
-}
 view: jhu_sample_county_level_final {
   derived_table: {
     datagroup_trigger: covid_data
@@ -118,7 +5,7 @@ view: jhu_sample_county_level_final {
 
     SELECT
         'Real Data' as real_vs_forecasted,
-        fips,
+        cast(fips as string) as fips,
         county,
         province_state,
         country_region,
@@ -133,13 +20,13 @@ view: jhu_sample_county_level_final {
         deaths as deaths_cumulative,
         deaths - coalesce(LAG(deaths, 1) OVER (PARTITION BY concat(coalesce(county,''), coalesce(province_state,''), coalesce(country_region,''))  ORDER BY measurement_date ASC),0) as deaths_new_cases
 
-    FROM ${nyc_correction.SQL_TABLE_NAME}
+    FROM `lookerdata.covid19.combined_covid_data`
 
     UNION ALL
 
         SELECT
         'Forecasted' as real_vs_forecasted,
-        fips,
+        cast(fips as string) as fips,
         county,
         province_state,
         country_region,
@@ -246,7 +133,7 @@ view: jhu_sample_county_level_final {
   dimension: fips {
     group_label: "Location"
     label: "County (Maps)"
-    map_layer_name: us_counties_fips
+    map_layer_name: us_counties_fips_nyc
     type: string
     sql: SUBSTR('00000' || IFNULL(SAFE_CAST(${TABLE}.fips AS STRING), ''), -5) ;;
     html: {{ county._value }} ;;
@@ -1291,6 +1178,121 @@ view: jhu_sample_county_level_final {
 #         ON 1 = 1
 #       WHERE country_region <> 'US'
 #       AND cast(a.date as date) <= cast(c.max_date as date)
+#     ;;
+#   }
+# }
+
+
+# view: nyc_correction {
+#   derived_table: {
+#     datagroup_trigger: covid_data
+#     sql:
+#
+#       SELECT
+#         fips,
+#         county,
+#         province_state,
+#         country_region,
+#         lat,
+#         long,
+#         combined_key,
+#         measurement_date,
+#         confirmed,
+#         deaths
+#
+#     FROM `lookerdata.covid19.combined_covid_data`
+#     WHERE NOT (province_state = 'New York' AND country_region = 'US' AND fips = 123456789)
+#
+#     UNION ALL
+#
+#     SELECT
+#     36005 as fips,
+#     'Bronx' as county,
+#     'New York' as province_state,
+#     'US' as country_region,
+#     40.860208 as lat,
+#     -73.857072 as long,
+#     'Bronx, New York, US' as combined_key,
+#     measurement_date,
+#     round(confirmed * 0.17,0) as confirmed,
+#     round(deaths * 0.17,0) as deaths
+#     FROM `lookerdata.covid19.combined_covid_data`
+#     WHERE province_state = 'New York'
+#     AND country_region = 'US'
+#     AND fips = 123456789
+#
+#     UNION ALL
+#
+#     SELECT
+#       36081 as fips,
+#       'Queens' as county,
+#       'New York' as province_state,
+#       'US' as country_region,
+#       40.724358 as lat,
+#       -73.798797 as long,
+#       'Queens, New York, US' as combined_key,
+#       measurement_date,
+#       round(confirmed * 0.27,0) as confirmed,
+#       round(deaths * 0.27,0) as deaths
+#     FROM `lookerdata.covid19.combined_covid_data`
+#     WHERE province_state = 'New York'
+#     AND country_region = 'US'
+#     AND fips = 123456789
+#
+#     UNION ALL
+#
+#     SELECT
+#       36061 as fips,
+#       'New York County' as county,
+#       'New York' as province_state,
+#       'US' as country_region,
+#       40.774242 as lat,
+#       -73.975842 as long,
+#       'New York County, New York, US' as combined_key,
+#       measurement_date,
+#       round(confirmed * 0.19,0) as confirmed,
+#       round(deaths * 0.19,0) as deaths
+#     FROM `lookerdata.covid19.combined_covid_data`
+#     WHERE province_state = 'New York'
+#     AND country_region = 'US'
+#     AND fips = 123456789
+#
+#     UNION ALL
+#
+#     SELECT
+#       36047 as fips,
+#       'Brooklyn' as county,
+#       'New York' as province_state,
+#       'US' as country_region,
+#       40.682217 as lat,
+#       -73.937122 as long,
+#       'Brooklyn, New York, US' as combined_key,
+#       measurement_date,
+#       round(confirmed * 0.31,0) as confirmed,
+#       round(deaths * 0.31,0) as deaths
+#     FROM `lookerdata.covid19.combined_covid_data`
+#     WHERE province_state = 'New York'
+#     AND country_region = 'US'
+#     AND fips = 123456789
+#
+#     UNION ALL
+#
+#     SELECT
+#       36085 as fips,
+#       'Richmond' as county,
+#       'New York' as province_state,
+#       'US' as country_region,
+#       40.585763 as lat,
+#       -74.135702 as long,
+#       'Richmond, New York, US' as combined_key,
+#       measurement_date,
+#       round(confirmed * 0.06,0) as confirmed,
+#       round(deaths * 0.06,0) as deaths
+#     FROM `lookerdata.covid19.combined_covid_data`
+#     WHERE province_state = 'New York'
+#     AND country_region = 'US'
+#     AND fips = 123456789
+#
 #     ;;
 #   }
 # }
