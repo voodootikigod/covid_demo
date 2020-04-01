@@ -7,7 +7,7 @@ view: population_by_county_state_country {
       SELECT a.*, b.area_land_meters
       FROM
       (
-         SELECT * FROM `lookerdata.covid19.population_by_county_state_country` UNION ALL
+         SELECT * FROM `lookerdata.covid19.population_by_county_state_country` WHERE county <> 'New York City' UNION ALL
         SELECT 36125 as fips,'New York City' as county,'New York' as province_state,'US' as country_region,8343000 as population, 1 as count
       ) a
       LEFT JOIN
@@ -30,7 +30,7 @@ view: population_by_county_state_country {
     primary_key: yes
     hidden: yes
     type: string
-    sql: concat(coalesce(cast(${fips} as string),${county},''), coalesce(${province_state},''), coalesce(${country_region},'')) ;;
+    sql: concat(coalesce(${county},''), coalesce(${province_state},''), coalesce(${country_region},'')) ;;
   }
 
   dimension: count2 {
