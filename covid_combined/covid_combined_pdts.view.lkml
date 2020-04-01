@@ -706,6 +706,7 @@ view: prior_days_cases_covid {
 ####################
 ### Forecasting
 ####################
+# explore: growth_rate_by_pk  {}
 
 view: growth_rate_by_pk {
   derived_table: {
@@ -730,6 +731,7 @@ view: growth_rate_by_pk {
       }
     }
   }
+  dimension: fips {}
 }
 
 view: covid_forecasting {
