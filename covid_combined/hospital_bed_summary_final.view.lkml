@@ -19,7 +19,15 @@ UNION ALL SELECT 'George Test' as patient_name, 'Asthma' as condition, 'Recovere
 }
 
 view: hospital_bed_summary_final {
-  sql_table_name: `lookerdata.covid19.hospital_bed_summary_final` ;;
+  derived_table: {
+    datagroup_trigger: covid_data
+    sql:
+  SELECT *, case when fips in ( 36005, 36081, 36061, 36047, 36085 ) then 36125 else fips end as fips_nyc_corrected
+  FROM `lookerdata.covid19.hospital_bed_summary_final`
+    ;;
+  }
+
+  # sql_table_name: `lookerdata.covid19.hospital_bed_summary_final` ;;
 
 
 ####################
@@ -73,7 +81,7 @@ view: hospital_bed_summary_final {
   dimension: fips {
     hidden: yes
     type: number
-    sql: SUBSTR('00000' || IFNULL(SAFE_CAST(${TABLE}.FIPS AS STRING), ''), -5) ;;
+    sql: SUBSTR('00000' || IFNULL(SAFE_CAST(${TABLE}.fips_nyc_corrected AS STRING), ''), -5) ;;
   }
 
   dimension: hospital_name {
