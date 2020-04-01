@@ -140,8 +140,12 @@ view: italy_province {
 ######## NEW MEASURES ########
 
   measure: total_cases_province {
-    type: number
-    sql:  ARRAY_AGG(${totale_casi} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
+    type: sum
+    sql:  {% if italy.reporting_date._is_selected %}
+            ${totale_casi}
+          {% else %}
+            CASE WHEN ${reporting_date} = ${max_italy_date.max_date} THEN ${totale_casi} ELSE NULL END
+          {% endif %};;
     hidden: yes
   }
 

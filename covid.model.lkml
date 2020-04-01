@@ -272,6 +272,11 @@ explore: italy {
     view_label: "Italy"
     sql_on: ${italy.pk} = CONCAT(${italy_province.denominazione_regione}, ${italy_province.codice_regione}, ${italy_province.reporting_date});;
   }
+
+  join: max_italy_date {
+    relationship: one_to_one
+    sql_on:  1 = 1 ;;
+  }
 }
 
 
