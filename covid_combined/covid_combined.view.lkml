@@ -631,6 +631,27 @@ view: jhu_sample_county_level_final {
     }
   }
 
+  measure: confirmed_running_total_no_drill {
+    group_label: " Running Total"
+    label: "Confirmed Cases (Running Total) [No Drill]"
+    type: number
+    sql:
+          {% if jhu_sample_county_level_final.measurement_date._in_query or jhu_sample_county_level_final.days_since_first_outbreak._in_query or jhu_sample_county_level_final.days_since_max_date._in_query %} ${confirmed_option_1}
+          {% else %}  ${confirmed_option_2}
+          {% endif %} ;;
+    # drill_fields: [drill*]
+    link: {
+      label: "Data Source - NYT County Data"
+      url: "https://github.com/nytimes/covid-19-data"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.nytimes.com"
+    }
+    link: {
+      label: "Data Source - Johns Hopkins State & Country Data"
+      url: "https://github.com/CSSEGISandData/COVID-19"
+      icon_url: "http://www.google.com/s2/favicons?domain_url=http://www.jhu.edu"
+    }
+  }
+
   measure: confirmed_running_total_per_million {
     group_label: " Running Total"
     label: "Confirmed Cases per Million (Running Total)"
