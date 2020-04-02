@@ -151,7 +151,8 @@ view: policies_by_state {
     html:
     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
     {% elsif value == 'Not approved' %} <font color="black">{{ rendered_value }}</font>
-    {% else %}                    <font color="green">{{ rendered_value }}</font>
+    {% elsif value == 'Enacted' %} <font color="green">{{ rendered_value }}</font>
+    {% else %}                    <font color="black">{{ rendered_value }}</font>
     {% endif %} ;;
   }
 
@@ -207,6 +208,7 @@ view: policies_by_state {
       CASE
         WHEN ${non_essential_business_closures} = 'None' then 0
         WHEN ${non_essential_business_closures} = 'All Non-Essential Businesses' then 1
+        WHEN ${non_essential_business_closures} = 'All Non-Essential Retail Businesses' then 0.75
         ELSE 0.5
       END
     ;;
@@ -269,7 +271,8 @@ view: policies_by_state {
       CASE
         WHEN ${paid_sick_leave} = 'No policy' then 0
         WHEN ${paid_sick_leave} = 'Not approved' then 0.25
-        ELSE 1
+        WHEN ${paid_sick_leave} = 'Enacted' then 1
+        ELSE 0.25
       END
     ;;
   }

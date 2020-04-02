@@ -8,7 +8,8 @@ view: population_by_county_state_country {
       FROM
       (
          SELECT * FROM `lookerdata.covid19.population_by_county_state_country` WHERE county <> 'New York City' UNION ALL
-        SELECT 36125 as fips,'New York City' as county,'New York' as province_state,'US' as country_region,8343000 as population, 1 as count
+         SELECT * FROM `lookerdata.covid19.population_by_county_state_country` WHERE country_region <> 'US' UNION ALL
+         SELECT 36125 as fips,'New York City' as county,'New York' as province_state,'US' as country_region,8343000 as population, 1 as count
       ) a
       LEFT JOIN
       (
