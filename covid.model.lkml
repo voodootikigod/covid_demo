@@ -124,21 +124,28 @@ explore: jhu_sample_county_level_final {
 
 ## Logic to map county data to PUMA level ##
 
-  join: zip_to_county {
+  join: puma_to_county_mapping {
     relationship: many_to_many
-    sql_on: ${jhu_sample_county_level_final.fips_as_string} =  ${zip_to_county.county} ;;
-  }
-
-  join: zip_to_puma_v2 {
-    relationship: many_to_many
-    sql_on: ${zip_to_county.zip} =  ${zip_to_puma_v2.zip} ;;
+    sql_on: ${jhu_sample_county_level_final.fips_as_string} =  ${puma_to_county_mapping.county_fips} ;;
   }
 
   join: acs_puma_facts {
     view_label: "Vulnerable Populations"
     relationship: many_to_one
-    sql_on: ${zip_to_puma_v2.puma} = ${acs_puma_facts.puma} ;;
+    sql_on: ${puma_to_county_mapping.puma_fips} = ${acs_puma_facts.puma} ;;
   }
+
+## ARCHIVED GEO MAPPING LOGIC ##
+
+#   join: zip_to_county {
+#     relationship: many_to_many
+#     sql_on: ${jhu_sample_county_level_final.fips_as_string} =  ${zip_to_county.county} ;;
+#   }
+#
+#   join: zip_to_puma_v2 {
+#     relationship: many_to_many
+#     sql_on: ${zip_to_county.zip} =  ${zip_to_puma_v2.zip} ;;
+#   }
 
 #   join: acs_zip_codes_2017_5yr {
 #     view_label: "Vulnerable Populations"
