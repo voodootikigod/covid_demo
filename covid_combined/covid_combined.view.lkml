@@ -221,11 +221,11 @@ view: jhu_sample_county_level_final {
         -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
       end ;;
     drill_fields: [province_state]
-    link: {
-      label: "{{ value }} - Country Deep Dive"
-      url: "/dashboards/23?Country={{ value }}"
-      icon_url: "https://looker.com/favicon.ico"
-    }
+#     link: {
+#       label: "{{ value }} - Country Deep Dive"
+#       url: "/dashboards/23?Country={{ value }}"
+#       icon_url: "https://looker.com/favicon.ico"
+#     }
     link: {
       label: "{{ value }} - COVID19 Website"
       url: "{{ country_url_code_final.url._value }}"
