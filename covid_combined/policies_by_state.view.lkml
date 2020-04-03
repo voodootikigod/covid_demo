@@ -1,6 +1,52 @@
+# explore:  policies_by_state {}
+
 view: policies_by_state {
-  sql_table_name: `lookerdata.covid19.policies_by_state`
+  derived_table: {
+    datagroup_trigger: covid_data
+    sql:
+
+SELECT
+    state
+  , CASE WHEN Bar__Restaurant_Limits = '-' THEN 'None' ELSE Bar__Restaurant_Limits END as Bar__Restaurant_Limits
+  , CASE WHEN Mandatory_Quarantine IS NULL THEN 'None' ELSE Mandatory_Quarantine END as Mandatory_Quarantine
+  , CASE WHEN Non_Essential_Business_Closures = '-' THEN 'None' ELSE Non_Essential_Business_Closures END as Non_Essential_Business_Closures
+  , Emergency_Declaration
+  , Primary_Election_Postponement
+  , CASE WHEN State_Mandated_School_Closures = '-' THEN 'None' ELSE State_Mandated_School_Closures END as State_Mandated_School_Closures
+  , CASE WHEN Large_Gatherings_Ban = '-' THEN 'None' ELSE Large_Gatherings_Ban END as Large_Gatherings_Ban
+  , CASE WHEN Waive_Cost_Sharing_for_COVID_19_Treatment = '-' THEN 'No policy' ELSE Waive_Cost_Sharing_for_COVID_19_Treatment END as Waive_Cost_Sharing_for_COVID_19_Treatment
+  , CASE WHEN Free_Cost_Vaccine_When_Available = '-' THEN 'No policy' ELSE Free_Cost_Vaccine_When_Available END as Free_Cost_Vaccine_When_Available
+  , CASE WHEN State_Requires_Waiver_of_Prior_Authorization_Requirements = '-' THEN 'No policy' ELSE State_Requires_Waiver_of_Prior_Authorization_Requirements END as State_Requires_Waiver_of_Prior_Authorization_Requirements
+  , CASE WHEN Early_Prescription_Refills = '-' THEN 'No policy' ELSE Early_Prescription_Refills END as Early_Prescription_Refills
+  , CASE WHEN Marketplace_Special_Enrollment_Period__SEP_ = '-' THEN 'No policy' ELSE Marketplace_Special_Enrollment_Period__SEP_ END as Marketplace_Special_Enrollment_Period__SEP_
+  , CASE WHEN Section_1135_Waiver = '-' THEN 'Not approved' ELSE Section_1135_Waiver END as Section_1135_Waiver
+  , CASE WHEN Paid_Sick_Leave = '-' THEN 'No policy' ELSE Paid_Sick_Leave END as Paid_Sick_Leave
+FROM
+(
+  SELECT
+      coalesce(a.Location,b.Location)  as state
+    , a.Bar__Restaurant_Limits
+    , a.Mandatory_Quarantine
+    , a.Non_Essential_Business_Closures
+    , a.Emergency_Declaration
+    , a.Primary_Election_Postponement
+    , a.State_Mandated_School_Closures
+    , a.Large_Gatherings_Ban
+    , b.Waive_Cost_Sharing_for_COVID_19_Treatment
+    , b.Free_Cost_Vaccine_When_Available
+    , b.State_Requires_Waiver_of_Prior_Authorization_Requirements
+    , b.Early_Prescription_Refills
+    , b.Marketplace_Special_Enrollment_Period__SEP_
+    , b.Section_1135_Waiver
+    , b.Paid_Sick_Leave
+  FROM `lookerdata.covid19.state_mitigations_staging` a
+  LEFT JOIN `lookerdata.covid19.state_policy_attempt2` b
+    ON a.Location = b.Location
+) a
+
     ;;
+  }
+  # sql_table_name: `lookerdata.covid19.state_policy_combined_final`
 
 ### PK
 
@@ -16,7 +62,7 @@ view: policies_by_state {
   dimension: bar_restaurant_limits {
     group_label: "Social Gatherings"
     type: string
-    sql: ${TABLE}.Bar_Restaurant_Limits ;;
+    sql: ${TABLE}.Bar__Restaurant_Limits ;;
     html:
     {% if value == 'None' %} <font color="red">{{ rendered_value }}</font>
     {% elsif value == 'Limited On-site Service' %} <font color="red">{{ rendered_value }}</font>
@@ -36,38 +82,38 @@ view: policies_by_state {
       {% endif %} ;;
   }
 
-  dimension_group: stay_order {
-    group_label: "Social Gatherings"
-    type: time
-    timeframes: [
-      raw,
-      date,
-    ]
-    convert_tz: no
-    datatype: date
-    sql: ${TABLE}.Stay_Order_Date ;;
-  }
-
-  dimension: stay_order_policy {
-    group_label: "Social Gatherings"
-    type: string
-    sql: ${TABLE}.Stay_Order_Policy ;;
-    html:
-    {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
-    {% else %}                    <font color="green">{{ rendered_value }}</font>
-    {% endif %} ;;
-  }
-
-  dimension: stay_order_reach {
-    group_label: "Social Gatherings"
-    type: string
-    sql: ${TABLE}.Stay_Order_Reach ;;
-    html:
-    {% if value == 'No Counties' %} <font color="red">{{ rendered_value }}</font>
-    {% elsif value == 'State-wide' %} <font color="green">{{ rendered_value }}</font>
-    {% else %}                    <font color="black">{{ rendered_value }}</font>
-    {% endif %} ;;
-  }
+#   dimension_group: stay_order {
+#     group_label: "Social Gatherings"
+#     type: time
+#     timeframes: [
+#       raw,
+#       date,
+#     ]
+#     convert_tz: no
+#     datatype: date
+#     sql: ${TABLE}.Stay_Order_Date ;;
+#   }
+#
+#   dimension: stay_order_policy {
+#     group_label: "Social Gatherings"
+#     type: string
+#     sql: ${TABLE}.Stay_Order_Policy ;;
+#     html:
+#     {% if value == 'No policy' %} <font color="red">{{ rendered_value }}</font>
+#     {% else %}                    <font color="green">{{ rendered_value }}</font>
+#     {% endif %} ;;
+#   }
+#
+#   dimension: stay_order_reach {
+#     group_label: "Social Gatherings"
+#     type: string
+#     sql: ${TABLE}.Stay_Order_Reach ;;
+#     html:
+#     {% if value == 'No Counties' %} <font color="red">{{ rendered_value }}</font>
+#     {% elsif value == 'State-wide' %} <font color="green">{{ rendered_value }}</font>
+#     {% else %}                    <font color="black">{{ rendered_value }}</font>
+#     {% endif %} ;;
+#   }
 
   dimension: non_essential_business_closures {
     group_label: "Social Gatherings"
@@ -189,17 +235,17 @@ view: policies_by_state {
     {% endif %} ;;
   }
 
-  dimension: score_stay_order_policy {
-    hidden: yes
-    type: number
-    sql:
-      CASE
-        WHEN ${stay_order_policy} = 'No policy' then 0
-        WHEN ${stay_order_reach} = 'State-wide' then 1
-        ELSE 0.5
-      END
-    ;;
-  }
+#   dimension: score_stay_order_policy {
+#     hidden: yes
+#     type: number
+#     sql:
+#       CASE
+#         WHEN ${stay_order_policy} = 'No policy' then 0
+#         WHEN ${stay_order_reach} = 'State-wide' then 1
+#         ELSE 0.5
+#       END
+#     ;;
+#   }
 
   dimension: score_non_essential_business_closures {
     hidden: yes
@@ -280,15 +326,15 @@ view: policies_by_state {
   dimension: policy_score {
     hidden: yes
     type: number
+    # (${score_stay_order_policy} * 35) +
     sql:
       (
-        (${score_stay_order_policy} * 35) +
-        (${score_non_essential_business_closures} * 15) +
-        (${score_large_gatherings_ban} * 15) +
-        (${score_bar_restaurant_limits} * 15) +
-        (${score_state_mandated_school_closures} * 10) +
-        (${score_emergency_declaration} * 5) +
-        (${score_paid_sick_leave} * 5)
+        (${score_non_essential_business_closures} * 25) +
+        (${score_large_gatherings_ban} * 20) +
+        (${score_bar_restaurant_limits} * 20) +
+        (${score_state_mandated_school_closures} * 15) +
+        (${score_emergency_declaration} * 10) +
+        (${score_paid_sick_leave} * 10)
       ) / 100.0
     ;;
   }
