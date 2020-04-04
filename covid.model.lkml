@@ -1,5 +1,6 @@
 connection: "lookerdata"
 
+
 include: "/covid_combined/*.view.lkml"
 include: "/census_data/*.view.lkml"
 include: "/intl_covid_data/*.view.lkml"
