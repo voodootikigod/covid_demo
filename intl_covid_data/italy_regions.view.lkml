@@ -38,7 +38,8 @@ view: italy_regions {
 
   dimension: pk {
     primary_key: yes
-    sql: concat(${denominazione_regione}, ${codice_regione}, ${reporting_date}) ;;
+    # Need both the name and code of each region because they're reporting Bolzano and Trento on their own rows despite their both being in region 4
+    sql: concat(${nome_reg}, ${codice_regione}, ${reporting_date}) ;;
     hidden: yes
   }
 
@@ -354,18 +355,6 @@ view: italy_regions {
     hidden: yes
   }
 
-  measure: total_cases {
-    type: number
-    sql: {% if italy_province.nome_pro._is_selected  or italy_province.sigla_provincia._is_selected %}
-            ${italy_province.total_cases_province}
-         {% else %}
-            ${total_cases_region}
-          {% endif %};;
-    label: "Total cases"
-    description: "Running total of confirmed cases (IT: Totale casi), avail by region or province"
-    group_label: "Total cases"
-    drill_fields: [italy_province.denominazione_provincia]
-  }
 
   measure: new_cases_region {
     type: sum

@@ -64,6 +64,11 @@ view: italy_province {
     hidden: yes
   }
 
+  dimension: region_fk {
+    sql: concat(${nome_reg}, ${codice_regione}, ${reporting_date}) ;;
+    hidden: yes
+  }
+
 ######## RAW DIMENSIONS ########
 
   dimension_group: reporting {
@@ -136,17 +141,36 @@ view: italy_province {
     description: "The name of the province in Italy, (IT: Denominazione Provincia)"
   }
 
+  dimension: nome_reg {
+    type: string
+    sql: CASE
+          WHEN ${denominazione_regione} = 'P.A. Bolzano'
+          THEN 'Bolzano'
+          WHEN ${denominazione_regione} = 'P.A. Trento'
+          THEN 'Trento'
+          WHEN ${denominazione_regione} in ('Emilia Romagna', 'Emilia-Romagna')
+          THEN 'Emilia-Romagna'
+          ELSE ${denominazione_regione}
+        END
+          ;;
+    hidden: yes
+  }
+
 
 ######## NEW MEASURES ########
 
-  measure: total_cases_province {
+  measure: total_cases {
     type: sum
     sql:  {% if italy.reporting_date._is_selected %}
             ${totale_casi}
           {% else %}
             CASE WHEN ${reporting_date} = ${max_italy_date.max_date} THEN ${totale_casi} ELSE NULL END
           {% endif %};;
-    hidden: yes
+    label: "Total cases"
+    description: "Running total of confirmed cases (IT: Totale casi), avail by region or province"
+    group_label: "Total cases"
+    drill_fields: [denominazione_provincia]
+
   }
 
   measure: new_cases_province {
