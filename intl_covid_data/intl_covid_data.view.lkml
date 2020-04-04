@@ -65,6 +65,8 @@ view: covid_data {
         when ${TABLE}.Country = 'Czechia' then 'Czech Republic'
         when ${TABLE}.Country = 'Serbia' then 'Republic of Serbia'
         when ${TABLE}.Country = 'North Macedonia' then 'Macedonia'
+        when ${TABLE}.Country = 'US' then 'United States of Americs'
+        when ${TABLE}.Country = 'UK' then 'United Kingdom'
         else ${TABLE}.Country
         -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
       end
