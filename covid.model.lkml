@@ -1,5 +1,6 @@
 connection: "lookerdata"
 
+
 include: "/covid_combined/*.view.lkml"
 include: "/census_data/*.view.lkml"
 include: "/intl_covid_data/*.view.lkml"
@@ -13,7 +14,7 @@ include: "/us_covid_data/*.view.lkml"
 explore: jhu_sample_county_level_final {
   group_label: "*COVID 19"
   label: "COVID - Main"
-  view_label: " COVID19"
+#   view_label: " COVID19"
 
   sql_always_where:
         {% if jhu_sample_county_level_final.allow_forecasted_values._parameter_value == 'no' %} ${real_vs_forecasted} = 'Real Data'
