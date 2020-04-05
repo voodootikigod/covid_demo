@@ -30,7 +30,7 @@ view: italy_regions {
       data is not null
       AND denominazione_regione is not null
       ;;
-    sql_trigger_value: SELECT COUNT(*) FROM `lookerdata.covid19.italy_regions` ;;
+    sql_trigger_value: SELECT COUNT(*) FROM `lookerdata.covid19.italy_regions` WHERE codice_regione is not null ;;
   }
 
 
