@@ -101,7 +101,7 @@ view: jhu_sample_county_level_final {
     sql: ${TABLE}.county ;;
     link: {
       label: "{{ value }} - County Deep Dive"
-      url: "/dashboards/22?County={{ value }}&State={{ province_state._value }}"
+      url: "/dashboards/tu0YSgAWPwAu7ipyMyHh8b?County={{ value }}&State={{ province_state._value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
     link: {
@@ -148,7 +148,7 @@ view: jhu_sample_county_level_final {
     drill_fields: [fips]
     link: {
       label: "{{ value }} - State Deep Dive"
-      url: "/dashboards/21?State={{ value }}"
+      url: "/dashboards/TVGnurIXhJVNS6iMrojazJ?State={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
     link: {
@@ -223,7 +223,7 @@ view: jhu_sample_county_level_final {
     drill_fields: [province_state]
 #     link: {
 #       label: "{{ value }} - Country Deep Dive"
-#       url: "/dashboards/23?Country={{ value }}"
+#       url: "/dashboards/FLiQf6bJUQ5mxvHNyocYYz?Country={{ value }}"
 #       icon_url: "https://looker.com/favicon.ico"
 #     }
     link: {
@@ -304,7 +304,7 @@ view: jhu_sample_county_level_final {
     sql: case when ${country_rank.rank} <= {% parameter show_top_x_values %} then ${country_region} else ' Other' end ;;
     link: {
       label: "{{ value }} - Country Deep Dive"
-      url: "/dashboards/23?Country={{ value }}"
+      url: "/dashboards/FLiQf6bJUQ5mxvHNyocYYz?Country={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
 #     link: {
@@ -320,7 +320,7 @@ view: jhu_sample_county_level_final {
     sql: case when ${state_rank.rank} <= {% parameter show_top_x_values %} then ${province_state} else ' Other' end ;;
     link: {
       label: "{{ value }} - State Deep Dive"
-      url: "/dashboards/21?State={{ value }}"
+      url: "/dashboards/TVGnurIXhJVNS6iMrojazJ?State={{ value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
 #     link: {
@@ -336,7 +336,7 @@ view: jhu_sample_county_level_final {
     sql: case when ${fips_rank.rank} <= {% parameter show_top_x_values %} then ${county} else ' Other' end ;;
     link: {
       label: "{{ value }} - County Deep Dive"
-      url: "/dashboards/22?County={{ value }}&State={{ state_top_x._value }}"
+      url: "/dashboards/tu0YSgAWPwAu7ipyMyHh8b?County={{ value }}&State={{ state_top_x._value }}"
       icon_url: "https://looker.com/favicon.ico"
     }
   }
