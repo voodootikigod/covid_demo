@@ -199,6 +199,8 @@ view: italy_regions {
           THEN 'Trento'
           WHEN ${denominazione_regione} in ('Emilia Romagna', 'Emilia-Romagna')
           THEN 'Emilia-Romagna'
+          WHEN ${denominazione_regione} = "Valle d'Aosta"
+          THEN 'Valle d’Aosta'
           ELSE ${denominazione_regione}
         END
           ;;
