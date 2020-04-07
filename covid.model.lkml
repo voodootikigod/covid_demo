@@ -285,6 +285,17 @@ explore: italy {
     relationship: one_to_one
     sql_on:  1 = 1 ;;
   }
+
+  join: italy_region_stats {
+    relationship: many_to_one
+    sql_on: (${italy.codice_regione} = ${italy_region_stats.codice_regione} OR ${italy_region_stats.codice_regione} = 4)
+              AND ${italy.denominazione_regione} = ${italy_region_stats.denominazione_regione} ;;
+  }
+
+  join: italy_province_stats {
+    relationship: many_to_one
+    sql_on: ${italy_province.sigla_provincia} = ${italy_province_stats.sigla_provincia} ;;
+  }
 }
 
 
