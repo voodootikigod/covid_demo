@@ -217,6 +217,8 @@ view: jhu_sample_county_level_final {
         when ${TABLE}.country_region = 'Czechia' then 'Czech Republic'
         when ${TABLE}.country_region = 'Serbia' then 'Republic of Serbia'
         when ${TABLE}.country_region = 'North Macedonia' then 'Macedonia'
+        when ${TABLE}.country_region = 'US' then 'United States of America'
+        when ${TABLE}.country_region = 'UK' then 'United Kingdom'
         else ${TABLE}.country_region
         -- when ${TABLE}.Country = 'Cote d'Ivoire' then 'Ivory Coast'
       end ;;

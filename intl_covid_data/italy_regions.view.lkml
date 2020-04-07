@@ -199,6 +199,8 @@ view: italy_regions {
           THEN 'Trento'
           WHEN ${denominazione_regione} in ('Emilia Romagna', 'Emilia-Romagna')
           THEN 'Emilia-Romagna'
+          WHEN ${denominazione_regione} = "Valle d'Aosta"
+          THEN 'Valle d’Aosta'
           ELSE ${denominazione_regione}
         END
           ;;
@@ -211,7 +213,6 @@ view: italy_regions {
 ######## NEW MEASURES ########
 
   measure: currently_hospitalized {
-#     hidden: yes
     type: sum
     sql: {% if reporting_date._is_selected %}
             ${ricoverati_con_sintomi}
@@ -222,6 +223,15 @@ view: italy_regions {
     description: "Current number of patients hospitalized, excluding in ICU (IT: Ricoverati con sintomi), avail by region only"
     group_label: "Current cases by status"
   }
+
+  measure: hospitalized_non_icu_pp {
+    type: number
+    sql: 1000* ${currently_hospitalized}/NULLIF(${population}, 0) ;;
+    label: "Currently hospitalized (non-ICU) (per thousand)"
+    group_label: "Current cases by status"
+    value_format_name: decimal_2
+  }
+
 
 #   measure: currently_hospitalized_change {
 #     type: sum
@@ -241,6 +251,15 @@ view: italy_regions {
     description: "Current number of patients in ICU (IT: Terapia intensiva), avail by region only"
     group_label: "Current cases by status"
   }
+
+  measure: icu_pp {
+    type: number
+    sql: 1000* ${icu}/NULLIF(${population}, 0) ;;
+    label: "Current ICU patients (per thousand)"
+    group_label: "Current cases by status"
+    value_format_name: decimal_2
+  }
+
 
 #   dimension: terapia_intensiva_cambio {
 #     type: number
@@ -268,6 +287,14 @@ view: italy_regions {
     group_label: "Current cases by status"
   }
 
+  measure: hospitalized_pp {
+    type: number
+    sql: 1000* ${total_hospitalized}/NULLIF(${population}, 0) ;;
+    label: "Current Hospitalized (incl ICU) (per thousand)"
+    group_label: "Current cases by status"
+    value_format_name: decimal_2
+  }
+
   measure: home_quarantine {
     type: sum
     sql:  {% if reporting_date._is_selected %}
@@ -279,13 +306,15 @@ view: italy_regions {
     description: "Positive cases currently at home (IT: Isolamento domiciliare), avail by region only"
     group_label: "Current cases by status"
   }
-#
-#   dimension: isolamento_domiciliare_cambio {
-#     type: number
-#     hidden: yes
-#     label: "Change in number under home quarantine"
-#   }
-#
+
+  measure: home_quarantine_pp {
+    type: number
+    sql: 1000* ${home_quarantine}/NULLIF(${population}, 0) ;;
+    label: "Current Home Quarantine (per thousand)"
+    group_label: "Current cases by status"
+    value_format_name: decimal_2
+  }
+
   measure: total_active_cases {
     type: sum
     sql:  {% if reporting_date._is_selected %}
@@ -297,13 +326,15 @@ view: italy_regions {
     description: "Count of active cases including hospitalized patients + home confinement (IT: Totale attualmente positive), avail by region only"
     group_label: "Total cases"
   }
-#
-#   dimension: nuovi_attualmente_positivi {
-#     type: number
-#     hidden: yes
-#     label: "New amount of active cases (total number of active cases - total number of active cases from the previous day)"
-#   }
-#
+
+  measure: total_active_cases_pp {
+    type: number
+    sql: 1000* ${total_active_cases}/NULLIF(${population}, 0) ;;
+    label: "Total Active Cases (per thousand)"
+    group_label: "Total cases"
+    value_format_name: decimal_2
+  }
+
   measure: recovered {
     type: sum
     sql:  {% if reporting_date._is_selected %}
@@ -314,6 +345,14 @@ view: italy_regions {
     label: "Recovered"
     description: "Running total of all patients who have recovered (IT: Dimessi guariti), avail by region only"
     group_label: "Resolved cases by status"
+  }
+
+  measure: total_recovered_pp {
+    type: number
+    sql: 1000* ${recovered}/NULLIF(${population}, 0) ;;
+    label: "Total Recovered (per thousand)"
+    group_label: "Resolved cases by status"
+    value_format_name: decimal_2
   }
 
   measure: newly_recovered {
@@ -336,6 +375,14 @@ view: italy_regions {
     group_label: "Resolved cases by status"
   }
 
+  measure: total_deceased_pp {
+    type: number
+    sql: 1000* ${deceased}/NULLIF(${population}, 0) ;;
+    label: "Total Deaths (per thousand)"
+    group_label: "Resolved cases by status"
+    value_format_name: decimal_2
+  }
+
   measure: newly_deceased {
     type: sum
     sql: ${deceduti_nuovi} ;;
@@ -355,13 +402,11 @@ view: italy_regions {
     hidden: yes
   }
 
-
   measure: new_cases_region {
     type: sum
     sql:  ${totale_casi_nuovi_regione};;
     hidden: yes
   }
-
 
   measure: new_cases {
     type: number
@@ -389,6 +434,15 @@ view: italy_regions {
     group_label: "Testing"
   }
 
+  measure: tests_pp {
+    type: number
+    sql: 1000* ${tests_run}/NULLIF(${population}, 0) ;;
+    label: "Tests run (per thousand)"
+    group_label: "Testing"
+    value_format_name: decimal_2
+  }
+
+
   measure: new_tests {
     type: sum
     sql: ${tamponi_nuovi} ;;
@@ -402,6 +456,13 @@ view: italy_regions {
     sql: MAX(${reporting_date}) ;;
     type: date
     label: "Last Updated"
+  }
+
+  measure: population {
+    type: number
+    sql: COALESCE(${italy_province_stats.population}, ${italy_region_stats.population}) ;;
+    label: "Population"
+    value_format_name: decimal_0
   }
 
 }

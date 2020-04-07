@@ -150,6 +150,8 @@ view: italy_province {
           THEN 'Trento'
           WHEN ${denominazione_regione} in ('Emilia Romagna', 'Emilia-Romagna')
           THEN 'Emilia-Romagna'
+          WHEN ${denominazione_regione} = "Valle d'Aosta"
+          THEN 'Valle d’Aosta'
           ELSE ${denominazione_regione}
         END
           ;;
@@ -169,13 +171,28 @@ view: italy_province {
     label: "Total cases"
     description: "Running total of confirmed cases (IT: Totale casi), avail by region or province"
     group_label: "Total cases"
-    drill_fields: [denominazione_provincia]
+  }
 
+  measure: total_cases_pp {
+    type: number
+    sql: 1000 * ${total_cases}/NULLIF(${population}, 0) ;;
+    label: "Total cases (per thousand)"
+    group_label: "Total cases"
+    value_format_name: decimal_2
   }
 
   measure: new_cases_province {
+    type: sum
+    sql:  ${totale_casi_nuovi};;
+    hidden: yes
+  }
+
+
+  measure: population {
     type: number
-    sql:  ARRAY_AGG(${totale_casi_nuovi} IGNORE NULLS ORDER BY ${reporting_date} DESC LIMIT 1)[SAFE_ORDINAL(1)];;
+    sql: ${italy_province_stats.population} ;;
+    label: "Population"
+    value_format_name: decimal_0
     hidden: yes
   }
 
