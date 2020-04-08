@@ -125,15 +125,15 @@ explore: jhu_sample_county_level_final {
 
 ## Logic to map county data to PUMA level ##
 
-  join: puma_to_county_mapping {
+  join: puma_to_county_mapping_nyc_combined {
     relationship: many_to_many
-    sql_on: ${jhu_sample_county_level_final.fips_as_string} =  ${puma_to_county_mapping.county_fips} ;;
+    sql_on: ${jhu_sample_county_level_final.fips_as_string} =  ${puma_to_county_mapping_nyc_combined.county_fips} ;;
   }
 
   join: acs_puma_facts {
     view_label: "Vulnerable Populations"
     relationship: many_to_one
-    sql_on: ${puma_to_county_mapping.puma_fips} = ${acs_puma_facts.puma} ;;
+    sql_on: ${puma_to_county_mapping_nyc_combined.puma_fips} = ${acs_puma_facts.puma} ;;
   }
 
 ## ARCHIVED GEO MAPPING LOGIC ##

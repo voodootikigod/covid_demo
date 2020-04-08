@@ -358,33 +358,6 @@ view: jhu_sample_county_level_final {
     }
   }
 
-#   parameter: location_selector {
-#     type: unquoted
-#     default_value: "state"
-#     allowed_value: {
-#       label: "State"
-#       value: "state"
-#     }
-#     allowed_value: {
-#       label: "County"
-#       value: "county"
-#     }
-#     allowed_value: {
-#       label: "PUMA"
-#       value: "puma"
-#     }
-#   }
-#
-#   dimension: location_selection {
-#     group_label: "Location"
-#     type: string
-#     sql:
-#         {% if    location_selector._parameter_value == 'state' %} ${province_state}
-#         {% elsif location_selector._parameter_value == 'county' %} ${fips}
-#         {% elsif location_selector._parameter_value == 'puma' %} ${zip_to_puma_v2.puma}
-#         {% endif %} ;;
-#   }
-
 #### Max Date ####
 
   dimension: is_max_date {
@@ -891,8 +864,8 @@ view: jhu_sample_county_level_final {
     hidden: yes
     description: "Convert county to PUMA by population distribution"
     type: number
-    sql: {% if puma_to_county_mapping.puma_fips._in_query %}
-          ${puma_to_county_mapping.pct_of_county_pop_in_puma}
+    sql: {% if puma_to_county_mapping_nyc_combined.puma_fips._in_query %}
+          ${puma_to_county_mapping_nyc_combined.pct_of_county_pop_in_puma}
       {% else %} 1.0 {% endif %};;
   }
 
@@ -900,8 +873,8 @@ view: jhu_sample_county_level_final {
 #     type: string
 #     hidden: yes
 #     description: "Dynamically detect if PUMA mapping table is used in query"
-#     sql: ({% if puma_to_county_mapping.puma_fips._in_query %}
-#           concat(${pk},${puma_to_county_mapping.puma_fips})
+#     sql: ({% if puma_to_county_mapping_nyc_combined.puma_fips._in_query %}
+#           concat(${pk},${puma_to_county_mapping_nyc_combined.puma_fips_raw})
 #       {% else %} ${pk} {% endif %})  ;;
 #   }
 
